@@ -4,7 +4,18 @@ import threading
 import time
 from pathlib import Path
 
-DOCUMENT_TABLES = {"runs", "experiments", "drift_reports", "policy_events"}
+DOCUMENT_TABLES = {
+    "runs",
+    "experiments",
+    "drift_reports",
+    "policy_events",
+    "review_reports",
+    "deployment_state",
+    "adapt_proposals",
+    "adapt_events",
+    "canary_runs",
+    "replay_cases",
+}
 
 
 class Store:
@@ -36,6 +47,11 @@ class Store:
               CREATE TABLE IF NOT EXISTS gateway_resources (id TEXT PRIMARY KEY, count INTEGER NOT NULL);
               INSERT OR IGNORE INTO gateway_resources VALUES ('worker-alpha',0);
             """)
+
+            for table in DOCUMENT_TABLES:
+                self.db.execute(
+                    f"CREATE TABLE IF NOT EXISTS {table} (id TEXT PRIMARY KEY, created REAL NOT NULL, payload TEXT NOT NULL)"
+                )
 
     def ingest(self, spans: list[dict]):
         with self.lock, self.db:

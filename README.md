@@ -1,12 +1,16 @@
 # AgentScope
 
-**Follow an agent's execution. Diagnose failures. Verify the fix.**
+**Observe agent behavior. Inspect the evidence. Control the change.**
 
-AgentScope is a local-first observability and reliability lab for AI workflows. It accepts OpenTelemetry traces, reconstructs work across processes, flags evidence-backed failure patterns, and compares implementations against a reproducible evaluation dataset.
+[![Validate](https://github.com/Harsh-Dhingra/agentscope/actions/workflows/ci.yml/badge.svg)](https://github.com/Harsh-Dhingra/agentscope/actions/workflows/ci.yml)
+
+AgentScope is a local-first observability and reliability lab for AI workflows. It accepts OpenTelemetry traces, reconstructs work across processes, flags evidence-backed failure patterns, compares implementations against a reproducible evaluation dataset, and exercises reviewed configuration rollouts.
 
 Built with **Python · FastAPI · React · TypeScript · OpenTelemetry · LangGraph · MCP · SQLite**.
 
 This is an independent engineering portfolio project. It is not affiliated with other projects named AgentScope. The current release is a single-user development system; production and multicloud requirements are documented explicitly.
+
+![AgentScope review workspace showing evidence-backed findings](docs/screenshots/review.jpg)
 
 ## Why build this?
 
@@ -24,6 +28,9 @@ AgentScope connects those behaviors to their execution traces and evaluates the 
 - **Reproducible experiments:** baseline versus controlled workflow for healthy execution, stale evidence, timeouts, and excessive retries.
 - **Performance and drift:** numeric reference/current windows, KS effect sizes, permutation tests, multiple-test correction, and distribution charts. Seeded scenarios and a custom-window API.
 - **Guardian:** deterministic tool policy, explicit demo approval, persisted decision ledger, and transactional idempotency for synthetic tools.
+- **Review panel:** three bounded analyzers, span-linked evidence, visible disagreement, and abstention on missing evidence.
+- **Developer replay:** reproduce built-in failures, inspect a corrected run, and enforce regression checks through a CLI/CI exit code.
+- **Adaptation workflow:** version registry, server-computed gates, workload/config digest, explicit local approval, 20% fixture canary routing, promotion, and rollback on candidate failure.
 - **Local storage:** SQLite WAL. No hosted observability account or paid model API is required for the fixture demo.
 
 The diagnosis rules do **not** constitute a general hallucination detector. The experiment uses four authored scenarios with deterministic responses. The Ollama path performs actual model inference and is labeled separately.
@@ -108,9 +115,9 @@ make evaluate  # API must be running; writes data/experiment.json
 
 The latest recorded fixture comparison passed **1/4 baseline** and **4/4 controlled** scenarios. These are regression results over the defined dataset, not production reliability, generalized model accuracy, or measured business impact. Inspect [validation notes](docs/validation.md) and the [recorded experiment](docs/experiment.json).
 
-See [drift and policy methods](docs/drift-and-policy.md) for statistical assumptions and the gateway’s exact enforcement boundary.
+See [review, replay and release controls](docs/review-and-release.md), the [phase changelog](CHANGELOG.md), and [drift and policy methods](docs/drift-and-policy.md) for statistical assumptions and the gateway’s exact enforcement boundary.
 
-The suite checks source-side redaction, OTLP validation, idempotent ingestion, span parentage, error status, controlled retries, diagnosis, browser origin/host restrictions, a real MCP subprocess round trip, seeded distribution shifts, unauthorized tool denial, and concurrent approval idempotency. CI builds the dashboard and container separately.
+The suite checks source-side redaction, OTLP validation, idempotent ingestion, span parentage, error status, controlled retries, diagnosis, browser origin/host restrictions, a real MCP subprocess round trip, seeded distribution shifts, unauthorized tool denial, and concurrent approval idempotency, evidence abstention, stale-release rejection, canary promotion, automatic rollback, and CLI regression failure codes. CI builds the dashboard and container separately.
 
 ## Architecture
 
@@ -129,10 +136,23 @@ flowchart LR
     E[Versioned fault scenarios] --> A
     E --> R[Assertion report]
     R --> UI
+    R --> G[Evaluation gates + local approval]
+    G --> C[Canary router + rollback]
+    C --> A
+    D --> P[Bounded review panel]
+    P --> UI
+    W[Numeric reference/current windows] --> DT[Drift analysis]
+    DT --> UI
+    T[Synthetic tool requests] --> GP[Policy + approval gateway]
+    GP --> UI
     A --> L[Local Ollama model]
 ```
 
 Read the [design decisions](docs/architecture.md), [privacy boundaries](docs/privacy.md), and [15-minute demo guide](docs/demo.md).
+
+## Product scope and next phase
+
+The first three milestones are implemented locally. [The platform roadmap](docs/platform-roadmap.md) separates working features from the remaining enterprise work: authenticated identities and reviewer roles, tenant isolation, durable collector queues, held-out evaluation, and a tested hybrid deployment.
 
 ## Deliberate limits and next work
 

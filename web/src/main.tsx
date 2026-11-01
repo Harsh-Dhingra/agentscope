@@ -3,6 +3,8 @@ import { createRoot } from "react-dom/client";
 import {
   Activity,
   TrendingUp,
+  Users,
+  GitBranch,
   Workflow,
   FlaskConical,
   Plug,
@@ -20,6 +22,7 @@ import {
   Layers,
   X,
 } from "lucide-react";
+import { ReviewPanel, AdaptPanel } from "./Control";
 import { DriftPanel, GuardianPanel } from "./Platform";
 import "./style.css";
 
@@ -118,6 +121,18 @@ const pages: Record<
     description:
       "Inspect decisions, review pending actions, and verify bounded tool effects.",
   },
+  review: {
+    label: "Review & replay",
+    title: "Make the evidence inspectable.",
+    description:
+      "Bounded analysis, explicit uncertainty, and reproducible regression cases.",
+  },
+  adapt: {
+    label: "Adapt & release",
+    title: "Ship changes with a recovery path.",
+    description:
+      "Move a tested configuration through review, canary validation, and controlled promotion.",
+  },
   connect: {
     label: "Connect an agent",
     title: "Instrument once. See the path.",
@@ -166,6 +181,9 @@ function App() {
     [runtime, setRuntime] = useState("scripted"),
     [transport, setTransport] = useState("inprocess"),
     [tab, setTab] = useState("trace");
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [page]);
   async function refresh() {
     try {
       const [t, e] = await Promise.all([
@@ -280,6 +298,8 @@ function App() {
             ["experiments", "Experiments", FlaskConical],
             ["drift", "Performance & drift", TrendingUp],
             ["guardian", "Guardian", ShieldCheck],
+            ["review", "Review & replay", Users],
+            ["adapt", "Adapt & release", GitBranch],
             ["connect", "Connect an agent", Plug],
           ].map(([key, label, Icon]) => (
             <button
@@ -305,7 +325,7 @@ function App() {
         <div className="sidebar-bottom">
           <span className={connected ? "status-dot" : "status-dot off"} />
           {connected ? "Collector connected" : "Collector unavailable"}
-          <span className="build">v0.2</span>
+          <span className="build">v0.3</span>
         </div>
       </aside>
       <div className="main-shell">
@@ -345,7 +365,11 @@ function App() {
             </div>
             <div className="live-label">
               <Radio size={14} />{" "}
-              {connected ? "Refreshing every 5s" : "Waiting for collector"}
+              {connected
+                ? page === "traces"
+                  ? "Refreshing every 5s"
+                  : "Collector online"
+                : "Waiting for collector"}
             </div>
           </div>
           {error && (
@@ -356,6 +380,24 @@ function App() {
                 <X size={15} />
               </button>
             </div>
+          )}
+          {page === "review" && (
+            <ReviewPanel
+              inspect={(id) => {
+                setSelected(id);
+                setPage("traces");
+                setTab("trace");
+              }}
+            />
+          )}
+          {page === "adapt" && (
+            <AdaptPanel
+              inspect={(id) => {
+                setSelected(id);
+                setPage("traces");
+                setTab("trace");
+              }}
+            />
           )}
           {page === "drift" && <DriftPanel />}
           {page === "guardian" && <GuardianPanel />}

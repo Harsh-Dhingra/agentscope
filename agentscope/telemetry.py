@@ -1,9 +1,7 @@
 """OpenTelemetry instrumentation, redacted export, and OTLP decoding."""
 
-import json
 from urllib.parse import urlparse
 import httpx
-from google.protobuf.json_format import MessageToDict
 from opentelemetry.proto.collector.trace.v1.trace_service_pb2 import (
     ExportTraceServiceRequest,
 )

@@ -43,3 +43,18 @@ For business impact, propose a timed debugging study with the same incident set,
 ## Practice checklist
 
 Be able to explain `telemetry.py`, `demo.py`, and the MCP integration test without reading a script. Make a small change yourself, add a meaningful test, and explain its effect. Keep a recording or screenshots of the measured run as a demo backup. State your use of AI development assistance accurately if asked.
+
+## Expanded platform route (choose these instead of trying every feature)
+
+Keep the live section to one coherent failure → evidence → fix → release story:
+
+1. Run a stale-evidence baseline and inspect its failing assertion.
+2. In **Review & replay**, select that trace and analyze it. Reliability and source freshness block; efficiency passes. Explain why a majority vote cannot erase evidence.
+3. Click **Replay with controls** and open the passing trace. Show the equivalent CLI command.
+4. In **Adapt & release**, evaluate the flawed baseline to show a blocked gate. Evaluate `guarded-v2` and approve its canary.
+5. Run the validation batch, explain why it deliberately selects five requests per route, then promote. If showing recovery, roll back, reevaluate, restart the canary, and inject a candidate outage.
+6. Use **Guardian** and **Performance & drift** as optional deeper dives, not extra screens to rush through.
+
+Allow about 2 minutes for framing, 3 for architecture, 6 for the story, and 4 for decisions and limits. Be ready to explain why the first release has deterministic analyzers, what a statistical shift does and does not prove, and why fixture success cannot establish production quality.
+
+Before the interview, make a change yourself: adjust one threshold or add a new synthetic fault with an independently meaningful assertion, run the test, and explain the failure it catches. Your ownership story should distinguish your decisions, AI-assisted implementation, tested behavior, and remaining work.

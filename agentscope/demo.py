@@ -327,6 +327,9 @@ async def execute(request: RunRequest, store):
             "agent.scenario": request.scenario,
             "agent.variant": request.variant,
             "agent.runtime": request.runtime,
+            "agent.config_version": "guarded-v2"
+            if request.variant == "guarded"
+            else "baseline-v1",
         },
     ) as root:
         trace_id = f"{root.get_span_context().trace_id:032x}"

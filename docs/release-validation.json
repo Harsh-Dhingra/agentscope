@@ -1,0 +1,279 @@
+{
+  "source": "Actual local browser smoke walkthrough using synthetic traffic",
+  "scope": "Local configuration router; no external deployment",
+  "deployment_state": {
+    "id": "local",
+    "revision": 5,
+    "stable": "baseline-v1",
+    "candidate": null,
+    "candidate_percent": 0,
+    "previous": null,
+    "rollout_id": "78e21be0-7ac7-4460-a098-ef50478b7675"
+  },
+  "evaluations": [
+    {
+      "id": "78e21be0-7ac7-4460-a098-ef50478b7675",
+      "candidate": "guarded-v2",
+      "gates": [
+        {
+          "name": "All four fixture scenarios pass",
+          "passed": true
+        },
+        {
+          "name": "No telemetry export failures",
+          "passed": true
+        }
+      ],
+      "passed_cases": 4,
+      "total_cases": 4,
+      "code_digest": "083ff3f4f2381b02a15bca8343fac57ef8a3a645501715936b2cf9868bcb1e1e"
+    },
+    {
+      "id": "208925b7-67d6-49f6-ba01-c1ba8f79fa0e",
+      "candidate": "guarded-v2",
+      "gates": [
+        {
+          "name": "All four fixture scenarios pass",
+          "passed": true
+        },
+        {
+          "name": "No telemetry export failures",
+          "passed": true
+        }
+      ],
+      "passed_cases": 4,
+      "total_cases": 4,
+      "code_digest": "083ff3f4f2381b02a15bca8343fac57ef8a3a645501715936b2cf9868bcb1e1e"
+    },
+    {
+      "id": "cda81b41-73f4-4b46-ba12-d6c9c0599a8b",
+      "candidate": "baseline-v1",
+      "gates": [
+        {
+          "name": "All four fixture scenarios pass",
+          "passed": false
+        },
+        {
+          "name": "No telemetry export failures",
+          "passed": true
+        }
+      ],
+      "passed_cases": 1,
+      "total_cases": 4,
+      "code_digest": "fdabe32e738b8de08285bd38605bf0b14b2a87ef43cafd18080852e7126b3083"
+    }
+  ],
+  "events": [
+    {
+      "id": "384ca0c5-d623-4dd2-8d0f-2cd68ac70c6f",
+      "created_at": 1793547178.077912,
+      "kind": "rolled_back",
+      "from": "guarded-v2",
+      "stable": "baseline-v1",
+      "reason": "Candidate assertion/availability failure during synthetic validation"
+    },
+    {
+      "id": "2fea307d-ff51-4af4-a512-0e7cb79c1e01",
+      "created_at": 1793547177.816042,
+      "kind": "canary_started",
+      "proposal_id": "78e21be0-7ac7-4460-a098-ef50478b7675",
+      "candidate": "guarded-v2",
+      "candidate_percent": 20,
+      "approval": "explicit local demo action"
+    },
+    {
+      "id": "35fda174-3a65-4da7-b208-1542fdb5d9a7",
+      "created_at": 1793547177.6628218,
+      "kind": "evaluation_completed",
+      "proposal_id": "78e21be0-7ac7-4460-a098-ef50478b7675",
+      "candidate": "guarded-v2",
+      "eligible": true
+    },
+    {
+      "id": "bcec3683-7d7e-4959-909f-e656d44d133a",
+      "created_at": 1793547176.9498,
+      "kind": "rolled_back",
+      "from": "guarded-v2",
+      "stable": "baseline-v1",
+      "reason": "Explicit local rollback"
+    },
+    {
+      "id": "2564ff14-0741-49f5-a33c-32f85ada47d1",
+      "created_at": 1793547169.9355059,
+      "kind": "promoted",
+      "stable": "guarded-v2",
+      "previous": "baseline-v1",
+      "candidate_runs": 5
+    },
+    {
+      "id": "47cccb80-228a-49c0-a2e0-5e24439e44ca",
+      "created_at": 1793547163.897105,
+      "kind": "canary_started",
+      "proposal_id": "208925b7-67d6-49f6-ba01-c1ba8f79fa0e",
+      "candidate": "guarded-v2",
+      "candidate_percent": 20,
+      "approval": "explicit local demo action"
+    },
+    {
+      "id": "c30bd643-183e-4283-9b04-45e6a67f0a72",
+      "created_at": 1793547159.660152,
+      "kind": "evaluation_completed",
+      "proposal_id": "208925b7-67d6-49f6-ba01-c1ba8f79fa0e",
+      "candidate": "guarded-v2",
+      "eligible": true
+    },
+    {
+      "id": "d9555e1d-7c02-4e52-8dd7-e3d8e872f890",
+      "created_at": 1793547152.0150368,
+      "kind": "evaluation_completed",
+      "proposal_id": "cda81b41-73f4-4b46-ba12-d6c9c0599a8b",
+      "candidate": "baseline-v1",
+      "eligible": false
+    }
+  ],
+  "canary_runs": [
+    {
+      "id": "607f1967-fc4f-4742-af48-daa16dac05f2",
+      "created_at": 1793547178.077297,
+      "rollout_id": "78e21be0-7ac7-4460-a098-ef50478b7675",
+      "version": "guarded-v2",
+      "route": "candidate",
+      "request_id": "bcbd697b-9e05-4278-b6ed-e2715ecb16e2:1",
+      "trace_id": "64ecc3c6d25f37ea2759abc808b353e0",
+      "scenario": "healthy",
+      "passed": false,
+      "outcome": "failed",
+      "injected_outage": true
+    },
+    {
+      "id": "90a35c61-7a6a-4bf0-a5e9-00353c2d3c1f",
+      "created_at": 1793547165.3432891,
+      "rollout_id": "208925b7-67d6-49f6-ba01-c1ba8f79fa0e",
+      "version": "baseline-v1",
+      "route": "stable",
+      "request_id": "b99dc4af-dda1-4d36-87ab-9afb9321b291:6",
+      "trace_id": "98ffd002d537fd646757a66291858415",
+      "scenario": "healthy",
+      "passed": true,
+      "outcome": "answered",
+      "injected_outage": false
+    },
+    {
+      "id": "b8e835fe-1af9-4981-abf4-9eea8283fbb3",
+      "created_at": 1793547165.2426748,
+      "rollout_id": "208925b7-67d6-49f6-ba01-c1ba8f79fa0e",
+      "version": "baseline-v1",
+      "route": "stable",
+      "request_id": "b99dc4af-dda1-4d36-87ab-9afb9321b291:5",
+      "trace_id": "686812259ff788eaee6bd0ae681dcd2f",
+      "scenario": "retry_loop",
+      "passed": false,
+      "outcome": "answered",
+      "injected_outage": false
+    },
+    {
+      "id": "16d478ce-96d8-43f9-b19b-10e35f260691",
+      "created_at": 1793547164.9223402,
+      "rollout_id": "208925b7-67d6-49f6-ba01-c1ba8f79fa0e",
+      "version": "baseline-v1",
+      "route": "stable",
+      "request_id": "b99dc4af-dda1-4d36-87ab-9afb9321b291:3",
+      "trace_id": "a50f6148e1e66f12afbf51fceacda0a4",
+      "scenario": "tool_timeout",
+      "passed": false,
+      "outcome": "answered",
+      "injected_outage": false
+    },
+    {
+      "id": "f69dedec-bd8e-4c7b-a19d-dc07fb80e1db",
+      "created_at": 1793547164.82815,
+      "rollout_id": "208925b7-67d6-49f6-ba01-c1ba8f79fa0e",
+      "version": "baseline-v1",
+      "route": "stable",
+      "request_id": "b99dc4af-dda1-4d36-87ab-9afb9321b291:1",
+      "trace_id": "e8149c58f88b8fb26a645aeb02bb2e1d",
+      "scenario": "stale_evidence",
+      "passed": false,
+      "outcome": "answered",
+      "injected_outage": false
+    },
+    {
+      "id": "1558192a-0acb-4041-954f-500c4d9fd417",
+      "created_at": 1793547164.7332711,
+      "rollout_id": "208925b7-67d6-49f6-ba01-c1ba8f79fa0e",
+      "version": "baseline-v1",
+      "route": "stable",
+      "request_id": "b99dc4af-dda1-4d36-87ab-9afb9321b291:0",
+      "trace_id": "ab34eeb855797615efcc8b01d95279fa",
+      "scenario": "healthy",
+      "passed": true,
+      "outcome": "answered",
+      "injected_outage": false
+    },
+    {
+      "id": "ac534f68-b97f-419e-8736-167799afe888",
+      "created_at": 1793547164.6387699,
+      "rollout_id": "208925b7-67d6-49f6-ba01-c1ba8f79fa0e",
+      "version": "guarded-v2",
+      "route": "candidate",
+      "request_id": "b99dc4af-dda1-4d36-87ab-9afb9321b291:11",
+      "trace_id": "e95502cd15ae2da4878ecd420da20d0f",
+      "scenario": "healthy",
+      "passed": true,
+      "outcome": "answered",
+      "injected_outage": false
+    },
+    {
+      "id": "a744c359-1e7c-4c60-992d-244658c3f65c",
+      "created_at": 1793547164.5448902,
+      "rollout_id": "208925b7-67d6-49f6-ba01-c1ba8f79fa0e",
+      "version": "guarded-v2",
+      "route": "candidate",
+      "request_id": "b99dc4af-dda1-4d36-87ab-9afb9321b291:9",
+      "trace_id": "ff5e0ce83ec2c7366e790e76b005c2bd",
+      "scenario": "retry_loop",
+      "passed": true,
+      "outcome": "escalated",
+      "injected_outage": false
+    },
+    {
+      "id": "ef670c40-846e-4c30-a29b-bc9dc1b506e0",
+      "created_at": 1793547164.440094,
+      "rollout_id": "208925b7-67d6-49f6-ba01-c1ba8f79fa0e",
+      "version": "guarded-v2",
+      "route": "candidate",
+      "request_id": "b99dc4af-dda1-4d36-87ab-9afb9321b291:7",
+      "trace_id": "c1f5e3889cc92af9c80a2bd3185beee7",
+      "scenario": "tool_timeout",
+      "passed": true,
+      "outcome": "escalated",
+      "injected_outage": false
+    },
+    {
+      "id": "60e5858c-04f7-4990-bf73-2ee93c141726",
+      "created_at": 1793547164.336428,
+      "rollout_id": "208925b7-67d6-49f6-ba01-c1ba8f79fa0e",
+      "version": "guarded-v2",
+      "route": "candidate",
+      "request_id": "b99dc4af-dda1-4d36-87ab-9afb9321b291:4",
+      "trace_id": "8f744834ff6a7ebe58122f4eaaee319d",
+      "scenario": "stale_evidence",
+      "passed": true,
+      "outcome": "answered",
+      "injected_outage": false
+    },
+    {
+      "id": "3797d91e-d8bb-453f-879c-b2d0329cc946",
+      "created_at": 1793547164.242371,
+      "rollout_id": "208925b7-67d6-49f6-ba01-c1ba8f79fa0e",
+      "version": "guarded-v2",
+      "route": "candidate",
+      "request_id": "b99dc4af-dda1-4d36-87ab-9afb9321b291:2",
+      "trace_id": "2d6a64d91e8576ba39083b0fc31402b6",
+      "scenario": "healthy",
+      "passed": true,
+      "outcome": "answered",
+      "injected_outage": false
+    }
+  ]
+}

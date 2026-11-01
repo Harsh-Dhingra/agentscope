@@ -1,4 +1,4 @@
-.PHONY: setup run test build evaluate
+.PHONY: setup run test build evaluate check
 setup:
 	python3 -m venv .venv
 	.venv/bin/python -m pip install -r requirements.lock
@@ -13,3 +13,6 @@ build:
 	npm --prefix web run build
 evaluate:
 	.venv/bin/python examples/evaluate.py
+
+check:
+	.venv/bin/python -m agentscope.cli check --variant guarded --output data/ci-regression.json

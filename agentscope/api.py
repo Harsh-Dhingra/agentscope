@@ -17,7 +17,10 @@ from .analysis import diagnose, summarize
 from .demo import RunRequest, execute, experiment, SCENARIOS
 from .drift import DriftRequest, analyze, demo_request
 from .guardian import demo_action, approve
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
+from .review import review_trace
+from .replay import replay_trace
+from . import adapt
 from typing import Literal
 
 MAX_BODY = 4 * 1024 * 1024
@@ -37,6 +40,33 @@ class GuardianDemoRequest(BaseModel):
     ] = "unauthorized_write"
 
 
+class TraceReviewRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    trace_id: str = Field(pattern=r"^[a-f0-9]{32}$")
+
+
+class ReplayRequest(TraceReviewRequest):
+    variant: Literal["baseline", "guarded"] = "guarded"
+
+
+class ProposalRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    version: Literal["baseline-v1", "guarded-v2"] = "guarded-v2"
+
+
+class ValidationBatchRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    inject_outage: bool = False
+
+
+class RoutedRunRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    scenario: Literal["healthy", "stale_evidence", "tool_timeout", "retry_loop"] = (
+        "healthy"
+    )
+    request_id: str = Field(min_length=8, max_length=100, pattern=r"^[A-Za-z0-9_:-]+$")
+
+
 def create_app(db_path=None):
     store = Store(db_path or os.environ.get("AGENTSCOPE_DB", "data/agentscope.db"))
 
@@ -45,7 +75,7 @@ def create_app(db_path=None):
         yield
         store.close()
 
-    app = FastAPI(title="AgentScope", version="0.2.0", lifespan=lifespan)
+    app = FastAPI(title="AgentScope", version="0.3.0", lifespan=lifespan)
     app.add_middleware(
         TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1", "[::1]"]
     )
@@ -68,7 +98,7 @@ def create_app(db_path=None):
     def health():
         return {
             "status": "ok",
-            "version": "0.2.0",
+            "version": "0.3.0",
             "storage": "sqlite",
             "scope": "local development; no user authentication",
         }
@@ -186,6 +216,85 @@ def create_app(db_path=None):
             raise HTTPException(404, "Action not found")
         except ValueError as exc:
             raise HTTPException(409, str(exc))
+
+    @app.get("/api/reviews")
+    def reviews():
+        return store.list("review_reports", 30)
+
+    @app.post("/api/reviews")
+    def review(request: TraceReviewRequest):
+        try:
+            return review_trace(store, request.trace_id)
+        except KeyError:
+            raise HTTPException(404, "Trace not found")
+
+    @app.get("/api/replays")
+    def replays():
+        return store.list("replay_cases", 30)
+
+    @app.post("/api/replays")
+    async def replay(request: ReplayRequest):
+        if app.state.run_lock.locked():
+            raise HTTPException(409, "Another workload is running")
+        async with app.state.run_lock:
+            try:
+                return await replay_trace(store, request.trace_id, request.variant)
+            except ValueError as exc:
+                raise HTTPException(409, str(exc))
+
+    @app.get("/api/adapt")
+    def adaptation():
+        return adapt.overview(store)
+
+    @app.post("/api/adapt/proposals")
+    async def proposal(request: ProposalRequest):
+        if app.state.run_lock.locked():
+            raise HTTPException(409, "Another workload is running")
+        async with app.state.run_lock:
+            return await adapt.propose(store, request.version)
+
+    @app.post("/api/adapt/proposals/{proposal_id}/approve")
+    async def approve_proposal(proposal_id: str):
+        if app.state.run_lock.locked():
+            raise HTTPException(409, "Wait for the workload to complete")
+        async with app.state.run_lock:
+            try:
+                return adapt.start_canary(store, proposal_id)
+            except KeyError:
+                raise HTTPException(404, "Proposal not found")
+            except ValueError as exc:
+                raise HTTPException(409, str(exc))
+
+    @app.post("/api/adapt/batch")
+    async def batch(request: ValidationBatchRequest):
+        if app.state.run_lock.locked():
+            raise HTTPException(409, "Another workload is running")
+        async with app.state.run_lock:
+            try:
+                return await adapt.validation_batch(store, request.inject_outage)
+            except ValueError as exc:
+                raise HTTPException(409, str(exc))
+
+    @app.post("/api/adapt/run")
+    async def routed_run(request: RoutedRunRequest):
+        if app.state.run_lock.locked():
+            raise HTTPException(409, "Another workload is running")
+        async with app.state.run_lock:
+            return await adapt.run_routed(store, request.scenario, request.request_id)
+
+    @app.post("/api/adapt/{action}")
+    async def transition(action: Literal["promote", "rollback"]):
+        if app.state.run_lock.locked():
+            raise HTTPException(409, "Wait for the workload to complete")
+        async with app.state.run_lock:
+            try:
+                return (
+                    adapt.promote(store)
+                    if action == "promote"
+                    else adapt.rollback(store)
+                )
+            except ValueError as exc:
+                raise HTTPException(409, str(exc))
 
     dist = Path(__file__).resolve().parent.parent / "web" / "dist"
     if dist.exists():

@@ -8,7 +8,7 @@ import {
   LockKeyhole,
 } from "lucide-react";
 
-async function request<T>(path: string, body?: unknown): Promise<T> {
+export async function request<T>(path: string, body?: unknown): Promise<T> {
   const r = await fetch(
     "/api" + path,
     body === undefined

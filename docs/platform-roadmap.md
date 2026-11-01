@@ -4,7 +4,7 @@ The product reference is a user-supplied marketing description of Imperative. It
 
 ## What exists
 
-The current local release provides trace ingestion, inspection, redacted export, rule-based diagnosis, synthetic evaluations, a LangGraph workload, a real MCP subprocess boundary, actual local-model inference, numeric drift analysis, and a synthetic tool policy gateway. It is the foundation for the platform, not the full platform.
+The current local release provides trace ingestion, inspection, redacted export, rule-based diagnosis, synthetic evaluations, a LangGraph workload, a real MCP subprocess boundary, actual local-model inference, numeric drift analysis, a synthetic tool policy gateway, bounded trace review, CLI replay, and local configuration release control. It is the foundation for the platform, not the full platform.
 
 ## Proposed modules and acceptance criteria
 
@@ -12,12 +12,12 @@ The current local release provides trace ingestion, inspection, redacted export,
 |---|---|---|---|---|
 | Observe | Cannot reconstruct an agent run | OTLP traces, service attribution, parent/child spans, model usage and tool errors | Trace from the application and MCP worker joins correctly | Implemented locally |
 | Evaluate | Cannot tell whether a change fixed a failure | Versioned datasets, explicit assertions, baseline/candidate reports | Same fixture case fails before and passes after a controlled change | Small synthetic suite implemented |
-| Performance | Quality or resources change silently | Model/prompt/retriever version registry; quality, latency, token, error and cost trends | Inject a known change and identify its time/version with a stable baseline | Planned |
+| Performance | Quality or resources change silently | Model/prompt/retriever version registry; quality, latency, token, error and cost trends | Inject a known change and identify its time/version with a stable baseline | Trace timing/tokens and lab configuration versions implemented; cost attribution and population trends planned |
 | Drift | Production differs from reference behavior | Reference windows, distribution tests, minimum sample size, segmentation, effect size and alert review | Known shift detected; stationary controls stay within calibrated false-alarm bounds | Numeric window API and charts implemented; production calibration and segmentation planned |
 | Guardian | Agent invokes unsafe or unauthorized operations | Authenticated tool gateway, allowlists, per-action policy, budget/deadline limits, approval-required actions | Unauthorized write is denied before execution; permitted write remains functional | Synthetic policy gateway, approval and idempotency implemented; identity integration planned |
-| IDE | Developers cannot reproduce production failures | CLI/CI replay, dataset promotion from redacted traces, local run inspector, editor deep links | A sanitized failing trace becomes a reproducible test and blocks a bad change in CI | CI and examples exist; full workflow planned |
-| Adapt | Teams cannot safely change a failing system | Versioned prompt/config proposals, offline evaluation, reviewer approval, canary rollout and rollback | Candidate passes gates, controlled rollout exposes a regression, rollback restores prior version | Planned |
-| Expert review | A single diagnosis is brittle | Bounded independent analyzers with structured evidence; deterministic decision policy | Disagreement, missing evidence, and analyzer failure are visible; unsupported action is refused | Planned |
+| IDE | Developers cannot reproduce production failures | CLI/CI replay, dataset promotion from redacted traces, local run inspector, editor deep links | A sanitized failing trace becomes a reproducible test and blocks a bad change in CI | Built-in scenario replay and CLI/CI gates implemented; external sanitized dataset authoring planned |
+| Adapt | Teams cannot safely change a failing system | Versioned prompt/config proposals, offline evaluation, reviewer approval, canary rollout and rollback | Candidate passes gates, controlled rollout exposes a regression, rollback restores prior version | Local fixture version registry, gates, canary routing and rollback implemented; external deployment planned |
+| Expert review | A single diagnosis is brittle | Bounded independent analyzers with structured evidence; deterministic decision policy | Disagreement, missing evidence, and analyzer failure are visible; unsupported action is refused | Three bounded rule-based analyzers and deterministic abstention/aggregation implemented; model-based panel evaluation planned |
 | Control plane | Multiple teams need governed operations | Authentication, tenancy, RBAC, audit events, model registry, quotas, secrets, retention | Tenant isolation and authorization tests; restore/deletion exercises | Planned |
 | Hybrid deployment | Workloads span local and cloud boundaries | Authenticated collectors, TLS, durable export queues, trace propagation, topology and egress policy | Trace survives a real two-environment run and a controlled network interruption | Process boundary tested; cloud topology planned |
 
@@ -49,21 +49,25 @@ Consensus among models can be correlated and wrong. Evaluate the panel against a
 
 ## Build phases
 
-### Phase 1: interview-ready observability foundation
+### Phase 1 — shipped: observability foundation
 
 Finish and publish the current working local implementation, tests, measured fixture report, architectural decisions and demo script. Practice explaining the code and limitations. Success: another developer can clone, run a failure, inspect its cause, change the controls and reproduce the comparison.
 
-### Phase 2: performance and drift
+### Phase 2 — shipped: drift and tool policy
 
-Add model/config version metadata, reference and current datasets, a small set of calibrated detectors, and an alert inbox. Success: seeded shifts are detected with reported sample counts/effect sizes and stationary controls are evaluated for false alarms.
+Numeric comparison API and charts, sample-size validation, effect size, permutation tests, correction across metrics, and seeded controls. Synthetic tool gateway checks scope and role, requires explicit review for a restart, and proves one local effect under concurrent approval.
 
-### Phase 3: controlled protection and expert review
+### Phase 3 — shipped: review, replay, and release control
 
-Add a tool gateway with explicit authorization and deterministic policies, three structured analyzers, disagreement handling and review. Success: a denied action does not reach the target system, while a valid action completes exactly once under retry.
+Three evidence analyzers, disagreement and abstention, built-in test replay, CLI regression gates, versioned configurations, a digest-bound evaluation, local canary routing, minimum sample gates, and promotion/rollback. The release loop uses actual scripted executions; identities and workloads remain synthetic.
 
-### Phase 4: adaptation and enterprise deployment
+### Phase 4 — next: enterprise identity and operational durability
 
-Add reviewed configuration proposals, canaries and rollback; then authenticated collectors, tenancy, scalable storage, queues and real hybrid deployment. Success criteria include isolation, recovery, deployment reproducibility and measured operational overhead.
+Add authenticated users and collectors, reviewer separation, project/tenant isolation, retention and deletion, export queues and retry/backpressure, and tamper-evident audit records. Define and test authorization boundaries before connecting real tools. Replace local locks with durable workflow transitions for distributed operation.
+
+### Phase 5 — next: real integrations and calibrated intelligence
+
+Run an authenticated collector across a real cloud/local boundary, connect a narrowly scoped external tool, expand held-out evaluations, calibrate drift false alarms on representative data, compare model-based analyzers against the deterministic baseline, and benchmark cost, overhead and diagnosis time. Add Salesforce/Snowflake adapters only when a concrete data/access contract and use case justify them.
 
 No phase duration is promised before learning the interview deadline, deployment constraints and expected depth. All features should be marked implemented, simulated or planned in the UI/documentation.
 

@@ -8,6 +8,7 @@ ALLOWED = frozenset(
         "deployment.environment.name",
         "agent.scenario",
         "agent.variant",
+        "agent.config_version",
         "agent.runtime",
         "agent.role",
         "agent.outcome",
