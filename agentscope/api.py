@@ -15,8 +15,26 @@ from .store import Store
 from .telemetry import decode_otlp
 from .analysis import diagnose, summarize
 from .demo import RunRequest, execute, experiment, SCENARIOS
+from .drift import DriftRequest, analyze, demo_request
+from .guardian import demo_action, approve
+from pydantic import BaseModel, ConfigDict
+from typing import Literal
 
 MAX_BODY = 4 * 1024 * 1024
+
+
+class DriftDemoRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    scenario: Literal[
+        "stable", "latency_spike", "quality_regression", "knowledge_aging"
+    ] = "latency_spike"
+
+
+class GuardianDemoRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    scenario: Literal[
+        "allowed_read", "unauthorized_write", "approval_required", "blocked_export"
+    ] = "unauthorized_write"
 
 
 def create_app(db_path=None):
@@ -27,7 +45,7 @@ def create_app(db_path=None):
         yield
         store.close()
 
-    app = FastAPI(title="AgentScope", version="0.1.0", lifespan=lifespan)
+    app = FastAPI(title="AgentScope", version="0.2.0", lifespan=lifespan)
     app.add_middleware(
         TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1", "[::1]"]
     )
@@ -50,7 +68,7 @@ def create_app(db_path=None):
     def health():
         return {
             "status": "ok",
-            "version": "0.1.0",
+            "version": "0.2.0",
             "storage": "sqlite",
             "scope": "local development; no user authentication",
         }
@@ -137,6 +155,37 @@ def create_app(db_path=None):
             raise HTTPException(409, "Another workload is running")
         async with app.state.run_lock:
             return await experiment(store)
+
+    @app.get("/api/drift/reports")
+    def drift_reports():
+        return store.list("drift_reports", 30)
+
+    @app.post("/api/drift/analyze")
+    def drift_analyze(request: DriftRequest):
+        return analyze(request, store)
+
+    @app.post("/api/drift/demo")
+    def drift_demo(request: DriftDemoRequest):
+        return analyze(
+            demo_request(request.scenario), store, source="synthetic seeded windows"
+        )
+
+    @app.get("/api/guardian/events")
+    def guardian_events():
+        return store.list("policy_events")
+
+    @app.post("/api/guardian/demo")
+    def guardian_demo(request: GuardianDemoRequest):
+        return demo_action(store, request.scenario)
+
+    @app.post("/api/guardian/events/{event_id}/approve")
+    def guardian_approve(event_id: str):
+        try:
+            return approve(store, event_id)
+        except KeyError:
+            raise HTTPException(404, "Action not found")
+        except ValueError as exc:
+            raise HTTPException(409, str(exc))
 
     dist = Path(__file__).resolve().parent.parent / "web" / "dist"
     if dist.exists():

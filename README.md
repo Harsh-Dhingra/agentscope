@@ -22,6 +22,8 @@ AgentScope connects those behaviors to their execution traces and evaluates the 
 - **Real integrations:** a role-based LangGraph workload, a real MCP stdio worker with cross-process W3C trace propagation, and local Ollama inference with model-reported token counts.
 - **Failure diagnosis:** failed steps, stale-evidence metadata, repeated calls, failed explicit assertions, and missing parent spans.
 - **Reproducible experiments:** baseline versus controlled workflow for healthy execution, stale evidence, timeouts, and excessive retries.
+- **Performance and drift:** numeric reference/current windows, KS effect sizes, permutation tests, multiple-test correction, and distribution charts. Seeded scenarios and a custom-window API.
+- **Guardian:** deterministic tool policy, explicit demo approval, persisted decision ledger, and transactional idempotency for synthetic tools.
 - **Local storage:** SQLite WAL. No hosted observability account or paid model API is required for the fixture demo.
 
 The diagnosis rules do **not** constitute a general hallucination detector. The experiment uses four authored scenarios with deterministic responses. The Ollama path performs actual model inference and is labeled separately.
@@ -106,7 +108,9 @@ make evaluate  # API must be running; writes data/experiment.json
 
 The latest recorded fixture comparison passed **1/4 baseline** and **4/4 controlled** scenarios. These are regression results over the defined dataset, not production reliability, generalized model accuracy, or measured business impact. Inspect [validation notes](docs/validation.md) and the [recorded experiment](docs/experiment.json).
 
-The suite checks source-side redaction, OTLP validation, idempotent ingestion, span parentage, error status, controlled retries, diagnosis, browser origin/host restrictions, and a real MCP subprocess round trip. CI builds the dashboard and container separately.
+See [drift and policy methods](docs/drift-and-policy.md) for statistical assumptions and the gateway’s exact enforcement boundary.
+
+The suite checks source-side redaction, OTLP validation, idempotent ingestion, span parentage, error status, controlled retries, diagnosis, browser origin/host restrictions, a real MCP subprocess round trip, seeded distribution shifts, unauthorized tool denial, and concurrent approval idempotency. CI builds the dashboard and container separately.
 
 ## Architecture
 

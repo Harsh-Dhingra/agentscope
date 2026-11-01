@@ -4,6 +4,8 @@ import threading
 import time
 from pathlib import Path
 
+DOCUMENT_TABLES = {"runs", "experiments", "drift_reports", "policy_events"}
+
 
 class Store:
     """Small single-node store. Deduplicates OTLP delivery by trace/span IDs."""
@@ -25,6 +27,14 @@ class Store:
                 id TEXT PRIMARY KEY, created REAL NOT NULL, payload TEXT NOT NULL);
               CREATE TABLE IF NOT EXISTS experiments (
                 id TEXT PRIMARY KEY, created REAL NOT NULL, payload TEXT NOT NULL);
+              CREATE TABLE IF NOT EXISTS drift_reports (
+                id TEXT PRIMARY KEY, created REAL NOT NULL, payload TEXT NOT NULL);
+              CREATE TABLE IF NOT EXISTS policy_events (
+                id TEXT PRIMARY KEY, created REAL NOT NULL, payload TEXT NOT NULL);
+              CREATE TABLE IF NOT EXISTS gateway_actions (
+                action_key TEXT PRIMARY KEY, fingerprint TEXT NOT NULL, payload TEXT NOT NULL);
+              CREATE TABLE IF NOT EXISTS gateway_resources (id TEXT PRIMARY KEY, count INTEGER NOT NULL);
+              INSERT OR IGNORE INTO gateway_resources VALUES ('worker-alpha',0);
             """)
 
     def ingest(self, spans: list[dict]):
@@ -56,7 +66,7 @@ class Store:
             ]
 
     def put(self, table: str, item: dict):
-        if table not in {"runs", "experiments"}:
+        if table not in DOCUMENT_TABLES:
             raise ValueError("unknown table")
         with self.lock, self.db:
             self.db.execute(
@@ -65,13 +75,22 @@ class Store:
             )
 
     def list(self, table: str, limit=100) -> list[dict]:
-        if table not in {"runs", "experiments"}:
+        if table not in DOCUMENT_TABLES:
             raise ValueError("unknown table")
         with self.lock:
             rows = self.db.execute(
                 f"SELECT payload FROM {table} ORDER BY created DESC LIMIT ?", (limit,)
             ).fetchall()
         return [json.loads(r[0]) for r in rows]
+
+    def get(self, table: str, item_id: str):
+        if table not in DOCUMENT_TABLES:
+            raise ValueError("unknown table")
+        with self.lock:
+            row = self.db.execute(
+                f"SELECT payload FROM {table} WHERE id=?", (item_id,)
+            ).fetchone()
+        return json.loads(row[0]) if row else None
 
     def close(self):
         self.db.close()

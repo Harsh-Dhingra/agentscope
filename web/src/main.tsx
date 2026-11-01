@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   Activity,
+  TrendingUp,
   Workflow,
   FlaskConical,
   Plug,
@@ -19,6 +20,7 @@ import {
   Layers,
   X,
 } from "lucide-react";
+import { DriftPanel, GuardianPanel } from "./Platform";
 import "./style.css";
 
 type Summary = {
@@ -87,6 +89,41 @@ const labels: Record<string, string> = {
   stale_evidence: "Stale evidence",
   tool_timeout: "Tool timeout",
   retry_loop: "Retry storm",
+};
+const pages: Record<
+  string,
+  { label: string; title: string; description: string }
+> = {
+  traces: {
+    label: "Trace explorer",
+    title: "Follow every execution.",
+    description:
+      "Trace model calls, delegated work, and tool failures in one place.",
+  },
+  experiments: {
+    label: "Experiments",
+    title: "Turn failures into evidence.",
+    description:
+      "Compare implementations against the same versioned fault scenarios.",
+  },
+  drift: {
+    label: "Performance & drift",
+    title: "Know when behavior changes.",
+    description:
+      "Compare reference and current distributions with explicit statistical assumptions.",
+  },
+  guardian: {
+    label: "Guardian",
+    title: "Put policy before execution.",
+    description:
+      "Inspect decisions, review pending actions, and verify bounded tool effects.",
+  },
+  connect: {
+    label: "Connect an agent",
+    title: "Instrument once. See the path.",
+    description:
+      "Send OpenTelemetry spans from your Python application to a local collector.",
+  },
 };
 const pretty = (s: string) => labels[s] || s.replaceAll("_", " ");
 async function api<T>(path: string, body?: unknown): Promise<T> {
@@ -241,6 +278,8 @@ function App() {
           {[
             ["traces", "Trace explorer", Workflow],
             ["experiments", "Experiments", FlaskConical],
+            ["drift", "Performance & drift", TrendingUp],
+            ["guardian", "Guardian", ShieldCheck],
             ["connect", "Connect an agent", Plug],
           ].map(([key, label, Icon]) => (
             <button
@@ -266,20 +305,14 @@ function App() {
         <div className="sidebar-bottom">
           <span className={connected ? "status-dot" : "status-dot off"} />
           {connected ? "Collector connected" : "Collector unavailable"}
-          <span className="build">v0.1</span>
+          <span className="build">v0.2</span>
         </div>
       </aside>
       <div className="main-shell">
         <header className="topbar">
           <span>
             Workspace <ChevronRight size={13} />{" "}
-            <strong>
-              {page === "traces"
-                ? "Trace explorer"
-                : page === "experiments"
-                  ? "Experiments"
-                  : "Connect an agent"}
-            </strong>
+            <strong>{pages[page].label}</strong>
           </span>
           <div className="top-info">
             <span className="pill neutral">LOCAL</span>
@@ -292,24 +325,23 @@ function App() {
             </a>
           </div>
         </header>
+        <nav className="mobile-nav" aria-label="Mobile navigation">
+          {Object.entries(pages).map(([key, value]) => (
+            <button
+              key={key}
+              className={page === key ? "active" : ""}
+              onClick={() => setPage(key)}
+            >
+              {value.label}
+            </button>
+          ))}
+        </nav>
         <main>
           <div className="page-heading">
             <div>
               <div className="eyebrow">AGENT RELIABILITY LAB</div>
-              <h1>
-                {page === "traces"
-                  ? "Follow every execution."
-                  : page === "experiments"
-                    ? "Turn failures into evidence."
-                    : "Instrument once. See the path."}
-              </h1>
-              <p>
-                {page === "traces"
-                  ? "Trace model calls, delegated work, and tool failures in one place."
-                  : page === "experiments"
-                    ? "Compare implementations against the same versioned fault scenarios."
-                    : "Send OpenTelemetry spans from your Python application to a local collector."}
-              </p>
+              <h1>{pages[page].title}</h1>
+              <p>{pages[page].description}</p>
             </div>
             <div className="live-label">
               <Radio size={14} />{" "}
@@ -325,6 +357,8 @@ function App() {
               </button>
             </div>
           )}
+          {page === "drift" && <DriftPanel />}
+          {page === "guardian" && <GuardianPanel />}
           {page === "traces" && (
             <>
               <section className="metrics" aria-label="Observed trace metrics">

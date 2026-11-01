@@ -4,7 +4,7 @@ The product reference is a user-supplied marketing description of Imperative. It
 
 ## What exists
 
-The current local release provides trace ingestion, inspection, redacted export, rule-based diagnosis, synthetic evaluations, a LangGraph workload, a real MCP subprocess boundary, and actual local-model inference. It is the foundation for the platform, not the full platform.
+The current local release provides trace ingestion, inspection, redacted export, rule-based diagnosis, synthetic evaluations, a LangGraph workload, a real MCP subprocess boundary, actual local-model inference, numeric drift analysis, and a synthetic tool policy gateway. It is the foundation for the platform, not the full platform.
 
 ## Proposed modules and acceptance criteria
 
@@ -13,8 +13,8 @@ The current local release provides trace ingestion, inspection, redacted export,
 | Observe | Cannot reconstruct an agent run | OTLP traces, service attribution, parent/child spans, model usage and tool errors | Trace from the application and MCP worker joins correctly | Implemented locally |
 | Evaluate | Cannot tell whether a change fixed a failure | Versioned datasets, explicit assertions, baseline/candidate reports | Same fixture case fails before and passes after a controlled change | Small synthetic suite implemented |
 | Performance | Quality or resources change silently | Model/prompt/retriever version registry; quality, latency, token, error and cost trends | Inject a known change and identify its time/version with a stable baseline | Planned |
-| Drift | Production differs from reference behavior | Reference windows, distribution tests, minimum sample size, segmentation, effect size and alert review | Known shift detected; stationary controls stay within calibrated false-alarm bounds | Planned |
-| Guardian | Agent invokes unsafe or unauthorized operations | Authenticated tool gateway, allowlists, per-action policy, budget/deadline limits, approval-required actions | Unauthorized write is denied before execution; permitted write remains functional | Planned; demo retry limits only |
+| Drift | Production differs from reference behavior | Reference windows, distribution tests, minimum sample size, segmentation, effect size and alert review | Known shift detected; stationary controls stay within calibrated false-alarm bounds | Numeric window API and charts implemented; production calibration and segmentation planned |
+| Guardian | Agent invokes unsafe or unauthorized operations | Authenticated tool gateway, allowlists, per-action policy, budget/deadline limits, approval-required actions | Unauthorized write is denied before execution; permitted write remains functional | Synthetic policy gateway, approval and idempotency implemented; identity integration planned |
 | IDE | Developers cannot reproduce production failures | CLI/CI replay, dataset promotion from redacted traces, local run inspector, editor deep links | A sanitized failing trace becomes a reproducible test and blocks a bad change in CI | CI and examples exist; full workflow planned |
 | Adapt | Teams cannot safely change a failing system | Versioned prompt/config proposals, offline evaluation, reviewer approval, canary rollout and rollback | Candidate passes gates, controlled rollout exposes a regression, rollback restores prior version | Planned |
 | Expert review | A single diagnosis is brittle | Bounded independent analyzers with structured evidence; deterministic decision policy | Disagreement, missing evidence, and analyzer failure are visible; unsupported action is refused | Planned |
