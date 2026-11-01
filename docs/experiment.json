@@ -1,0 +1,275 @@
+{
+  "id": "bf0ac6d5-a637-42c9-b330-1515a10c3288",
+  "dataset": "incident-fixtures-v1",
+  "runtime": "scripted",
+  "created_at": 1793545640.8049312,
+  "rows": [
+    {
+      "id": "7c1289a4-cd5f-41cd-ad27-516176008c5d",
+      "trace_id": "897c9e5c52f85c20acda457b7412442b",
+      "scenario": "healthy",
+      "variant": "baseline",
+      "runtime": "scripted",
+      "transport": "inprocess",
+      "answer": "Retain diagnostic logs for 30 days. Source: incident-runbook v3.",
+      "outcome": "answered",
+      "assertions": [
+        {
+          "name": "Expected completion or escalation",
+          "passed": true
+        },
+        {
+          "name": "Current evidence or truthful fallback",
+          "passed": true
+        },
+        {
+          "name": "Bounded tool attempts (at most two)",
+          "passed": true
+        },
+        {
+          "name": "Runtime completed without model failure",
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "duration_ms": 121.13,
+      "export_failures": 0,
+      "created_at": 1793545639.886524
+    },
+    {
+      "id": "7957a971-e756-42ed-a9db-9521c15441a7",
+      "trace_id": "f225467a0830934b34ce01ebdf64c666",
+      "scenario": "stale_evidence",
+      "variant": "baseline",
+      "runtime": "scripted",
+      "transport": "inprocess",
+      "answer": "Retain diagnostic logs for 90 days. Source: incident-runbook v1.",
+      "outcome": "answered",
+      "assertions": [
+        {
+          "name": "Expected completion or escalation",
+          "passed": true
+        },
+        {
+          "name": "Current evidence or truthful fallback",
+          "passed": false
+        },
+        {
+          "name": "Bounded tool attempts (at most two)",
+          "passed": true
+        },
+        {
+          "name": "Runtime completed without model failure",
+          "passed": true
+        }
+      ],
+      "passed": false,
+      "duration_ms": 95.74,
+      "export_failures": 0,
+      "created_at": 1793545639.982656
+    },
+    {
+      "id": "d6f7c76d-7167-47d0-bc71-55e451cb34b9",
+      "trace_id": "69274886da4276de58cff67e77529836",
+      "scenario": "tool_timeout",
+      "variant": "baseline",
+      "runtime": "scripted",
+      "transport": "inprocess",
+      "answer": "Retain diagnostic logs for 90 days. Source: incident-runbook unverified.",
+      "outcome": "answered",
+      "assertions": [
+        {
+          "name": "Expected completion or escalation",
+          "passed": false
+        },
+        {
+          "name": "Current evidence or truthful fallback",
+          "passed": false
+        },
+        {
+          "name": "Bounded tool attempts (at most two)",
+          "passed": true
+        },
+        {
+          "name": "Runtime completed without model failure",
+          "passed": true
+        }
+      ],
+      "passed": false,
+      "duration_ms": 98.43,
+      "export_failures": 0,
+      "created_at": 1793545640.0812259
+    },
+    {
+      "id": "1b97f2c1-d686-45f9-9ab8-0e766d706270",
+      "trace_id": "62f8cbcb1bec2da910b450e7d187186f",
+      "scenario": "retry_loop",
+      "variant": "baseline",
+      "runtime": "scripted",
+      "transport": "inprocess",
+      "answer": "Retain diagnostic logs for 90 days. Source: incident-runbook unverified.",
+      "outcome": "answered",
+      "assertions": [
+        {
+          "name": "Expected completion or escalation",
+          "passed": false
+        },
+        {
+          "name": "Current evidence or truthful fallback",
+          "passed": false
+        },
+        {
+          "name": "Bounded tool attempts (at most two)",
+          "passed": false
+        },
+        {
+          "name": "Runtime completed without model failure",
+          "passed": true
+        }
+      ],
+      "passed": false,
+      "duration_ms": 310.04,
+      "export_failures": 0,
+      "created_at": 1793545640.3913758
+    },
+    {
+      "id": "ebe3176e-694d-44f9-99b4-7ae268ff9bdf",
+      "trace_id": "4d98cacdc7c1697995c653870c131c07",
+      "scenario": "healthy",
+      "variant": "guarded",
+      "runtime": "scripted",
+      "transport": "inprocess",
+      "answer": "Retain diagnostic logs for 30 days. Source: incident-runbook v3.",
+      "outcome": "answered",
+      "assertions": [
+        {
+          "name": "Expected completion or escalation",
+          "passed": true
+        },
+        {
+          "name": "Current evidence or truthful fallback",
+          "passed": true
+        },
+        {
+          "name": "Bounded tool attempts (at most two)",
+          "passed": true
+        },
+        {
+          "name": "Runtime completed without model failure",
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "duration_ms": 97.02,
+      "export_failures": 0,
+      "created_at": 1793545640.488496
+    },
+    {
+      "id": "83365afd-3dec-4507-bfb9-123f8a1949cf",
+      "trace_id": "fd43617866aa977b1ebf300e540065ef",
+      "scenario": "stale_evidence",
+      "variant": "guarded",
+      "runtime": "scripted",
+      "transport": "inprocess",
+      "answer": "Retain diagnostic logs for 30 days. Source: incident-runbook v3.",
+      "outcome": "answered",
+      "assertions": [
+        {
+          "name": "Expected completion or escalation",
+          "passed": true
+        },
+        {
+          "name": "Current evidence or truthful fallback",
+          "passed": true
+        },
+        {
+          "name": "Bounded tool attempts (at most two)",
+          "passed": true
+        },
+        {
+          "name": "Runtime completed without model failure",
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "duration_ms": 94.73,
+      "export_failures": 0,
+      "created_at": 1793545640.583657
+    },
+    {
+      "id": "0c556424-ed8c-4e24-9a70-5454c7441fe9",
+      "trace_id": "da23bd52fce09a25fde9ee33061097cb",
+      "scenario": "tool_timeout",
+      "variant": "guarded",
+      "runtime": "scripted",
+      "transport": "inprocess",
+      "answer": "I cannot verify the current retention policy because the runbook service is unavailable. Escalate to the incident owner.",
+      "outcome": "escalated",
+      "assertions": [
+        {
+          "name": "Expected completion or escalation",
+          "passed": true
+        },
+        {
+          "name": "Current evidence or truthful fallback",
+          "passed": true
+        },
+        {
+          "name": "Bounded tool attempts (at most two)",
+          "passed": true
+        },
+        {
+          "name": "Runtime completed without model failure",
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "duration_ms": 104.63,
+      "export_failures": 0,
+      "created_at": 1793545640.688473
+    },
+    {
+      "id": "39c41767-4652-4fab-9b48-019bb1f9e31d",
+      "trace_id": "14f45db60e241dd6e80b306f8f233ae7",
+      "scenario": "retry_loop",
+      "variant": "guarded",
+      "runtime": "scripted",
+      "transport": "inprocess",
+      "answer": "I cannot verify the current retention policy because the runbook service is unavailable. Escalate to the incident owner.",
+      "outcome": "escalated",
+      "assertions": [
+        {
+          "name": "Expected completion or escalation",
+          "passed": true
+        },
+        {
+          "name": "Current evidence or truthful fallback",
+          "passed": true
+        },
+        {
+          "name": "Bounded tool attempts (at most two)",
+          "passed": true
+        },
+        {
+          "name": "Runtime completed without model failure",
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "duration_ms": 115.03,
+      "export_failures": 0,
+      "created_at": 1793545640.803636
+    }
+  ],
+  "summary": {
+    "baseline": {
+      "passed": 1,
+      "total": 4
+    },
+    "guarded": {
+      "passed": 4,
+      "total": 4
+    }
+  },
+  "limitations": "Four authored fault scenarios; deterministic scripted responses. This measures regression behavior, not general LLM quality or production impact."
+}

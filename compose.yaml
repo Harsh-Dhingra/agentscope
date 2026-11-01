@@ -1,0 +1,17 @@
+services:
+  agentscope:
+    build: .
+    ports:
+      - "127.0.0.1:8765:8765"
+    volumes:
+      - agentscope-data:/app/data
+    environment:
+      AGENTSCOPE_OLLAMA_URL: http://host.docker.internal:11434
+      AGENTSCOPE_OLLAMA_MODEL: qwen3:8b
+      LANGSMITH_TRACING: "false"
+      LANGCHAIN_TRACING_V2: "false"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    init: true
+volumes:
+  agentscope-data:
