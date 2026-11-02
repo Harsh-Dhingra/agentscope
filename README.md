@@ -185,3 +185,10 @@ The first three milestones and phase 4a identity controls plus the phase 4b dura
 - [Ollama chat API](https://docs.ollama.com/api/chat)
 
 MIT licensed. Third-party dependencies retain their respective licenses.
+
+## Cloud telemetry and public rollout
+
+OTLP/HTTP metadata-only log ingestion is now available alongside traces. See the
+[production rollout plan](docs/production-rollout.md) for API limits, cloud export
+adapter boundaries, and the security/reliability gates required before public launch.
+AWS/GCP/Azure account integrations and hosted deployment are planned, not connected.

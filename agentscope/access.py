@@ -71,7 +71,7 @@ def tenant_store(request: Request):
 def permitted(role, method, path):
     if role == "developer":
         return True
-    if path == "/v1/traces":
+    if path in {"/v1/traces", "/v1/logs"}:
         return method == "POST" and role in {"collector", "operator"}
     if role == "collector":
         return False
@@ -136,7 +136,7 @@ def install_access(app, identities: IdentityStore, tenants: TenantStores, mode):
     @app.middleware("http")
     async def access(request, call_next):
         path = request.url.path
-        protected = path.startswith("/api/") or path == "/v1/traces"
+        protected = path.startswith("/api/") or path.startswith("/v1/")
         public = path in {"/api/health", "/api/auth/session", "/api/auth/login"}
         if protected:
             request.state.actor = None
@@ -175,7 +175,8 @@ def install_access(app, identities: IdentityStore, tenants: TenantStores, mode):
                 if mode == "required" and not header and mutating:
                     expected = request.state.actor.get("csrf_token", "")
                     if not expected or not hmac.compare_digest(
-                        request.headers.get("x-csrf-token", "").encode(), expected.encode()
+                        request.headers.get("x-csrf-token", "").encode(),
+                        expected.encode(),
                     ):
                         audit(request, 403)
                         return JSONResponse(

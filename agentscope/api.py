@@ -3,7 +3,7 @@ import json
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
-from fastapi import FastAPI, HTTPException, Request, Depends
+from fastapi import FastAPI, HTTPException, Request, Depends, Query
 from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
@@ -12,6 +12,7 @@ from opentelemetry.proto.collector.trace.v1.trace_service_pb2 import (
     ExportTraceServiceRequest,
 )
 from .store import Store
+from .logs import decode_logs
 from .identity import IdentityStore
 from .access import (
     TenantStores,
@@ -175,6 +176,49 @@ def create_app(db_path=None, auth_mode=None, identity_path=None):
             content=b"" if content_type == "application/x-protobuf" else b"{}",
             media_type=content_type,
         )
+
+    @app.post("/v1/logs")
+    async def ingest_logs(request: Request, store: Store = Depends(tenant_store)):
+        content_type = request.headers.get("content-type", "").split(";")[0].strip()
+        if content_type not in {"application/json", "application/x-protobuf"}:
+            raise HTTPException(415, "Use OTLP HTTP protobuf or JSON")
+        if request.headers.get("content-encoding", "identity") != "identity":
+            raise HTTPException(415, "Compressed log payloads are unsupported")
+        body = bytearray()
+        async for chunk in request.stream():
+            body.extend(chunk)
+            if len(body) > MAX_BODY:
+                raise HTTPException(413, "OTLP body exceeds 4 MiB")
+        try:
+            records = decode_logs(bytes(body), content_type)
+        except Exception:
+            raise HTTPException(400, "Invalid OTLP logs payload")
+        try:
+            store.ingest_logs(records)
+        except OverflowError:
+            raise HTTPException(
+                429, "Tenant log capacity reached", headers={"Retry-After": "60"}
+            )
+        except Exception:
+            raise HTTPException(
+                503, "Log storage unavailable", headers={"Retry-After": "1"}
+            )
+        return Response(
+            content=b"" if content_type == "application/x-protobuf" else b"{}",
+            media_type=content_type,
+        )
+
+    @app.get("/api/logs")
+    def logs(
+        limit: int = Query(default=100, ge=1, le=500),
+        trace_id: str | None = Query(default=None, pattern=r"^[a-f0-9]{32}$"),
+        store: Store = Depends(tenant_store),
+    ):
+        return {
+            "records": store.logs(limit, trace_id),
+            "body_policy": "omitted",
+            "limit": limit,
+        }
 
     @app.get("/api/traces")
     def traces(store: Store = Depends(tenant_store)):

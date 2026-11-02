@@ -34,6 +34,10 @@ class Store:
         with self.db:
             self.db.execute("PRAGMA journal_mode=WAL")
             self.db.executescript("""
+              CREATE TABLE IF NOT EXISTS operational_logs (
+                id TEXT PRIMARY KEY, time_ns INTEGER NOT NULL, trace_id TEXT, payload TEXT NOT NULL);
+              CREATE INDEX IF NOT EXISTS logs_time ON operational_logs(time_ns DESC, id);
+              CREATE INDEX IF NOT EXISTS logs_trace ON operational_logs(trace_id, time_ns DESC);
               CREATE TABLE IF NOT EXISTS spans (
                 trace_id TEXT NOT NULL, span_id TEXT NOT NULL, start_ns INTEGER NOT NULL,
                 payload TEXT NOT NULL, PRIMARY KEY(trace_id, span_id));
@@ -111,6 +115,35 @@ class Store:
                 f"SELECT payload FROM {table} WHERE id=?", (item_id,)
             ).fetchone()
         return json.loads(row[0]) if row else None
+
+    def ingest_logs(self, records, capacity=100000):
+        with self.lock, self.db:
+            self.db.executemany(
+                "INSERT OR IGNORE INTO operational_logs VALUES(?,?,?,?)",
+                [
+                    (r["id"], r["time_ns"], r["trace_id"], json.dumps(r))
+                    for r in records
+                ],
+            )
+            if (
+                self.db.execute("SELECT COUNT(*) FROM operational_logs").fetchone()[0]
+                > capacity
+            ):
+                raise OverflowError("Log capacity reached")
+
+    def logs(self, limit=100, trace_id=None):
+        with self.lock:
+            if trace_id:
+                rows = self.db.execute(
+                    "SELECT payload FROM operational_logs WHERE trace_id=? ORDER BY time_ns DESC, id LIMIT ?",
+                    (trace_id, limit),
+                ).fetchall()
+            else:
+                rows = self.db.execute(
+                    "SELECT payload FROM operational_logs ORDER BY time_ns DESC, id LIMIT ?",
+                    (limit,),
+                ).fetchall()
+        return [json.loads(row[0]) for row in rows]
 
     def close(self):
         self.db.close()
