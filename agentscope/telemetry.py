@@ -132,8 +132,11 @@ def encode_spans(spans) -> ExportTraceServiceRequest:
 class SafeExporter(SpanExporter):
     """Redact before storage/transport. HTTP export is explicit and best effort."""
 
-    def __init__(self, store=None, endpoint=None, allow_remote=False):
+    def __init__(
+        self, store=None, endpoint=None, allow_remote=False, export_token=None
+    ):
         self.store, self.endpoint = store, endpoint
+        self.export_token = export_token
         if endpoint:
             url = urlparse(endpoint)
             if url.username or url.password or url.scheme not in {"http", "https"}:
@@ -144,6 +147,12 @@ class SafeExporter(SpanExporter):
                 "::1",
             }:
                 raise ValueError("Remote export requires allow_remote=True")
+            if (
+                export_token
+                and url.hostname not in {"127.0.0.1", "localhost", "::1"}
+                and url.scheme != "https"
+            ):
+                raise ValueError("Authenticated remote export requires HTTPS")
         self.failed_batches = 0
 
     def export(self, spans):
@@ -156,7 +165,14 @@ class SafeExporter(SpanExporter):
                     response = client.post(
                         self.endpoint,
                         content=request.SerializeToString(),
-                        headers={"Content-Type": "application/x-protobuf"},
+                        headers={
+                            "Content-Type": "application/x-protobuf",
+                            **(
+                                {"Authorization": "Bearer " + self.export_token}
+                                if self.export_token
+                                else {}
+                            ),
+                        },
                     )
                     response.raise_for_status()
             return SpanExportResult.SUCCESS
@@ -171,12 +187,13 @@ def create_tracer(
     store=None,
     endpoint=None,
     allow_remote=False,
+    export_token=None,
 ):
     provider = TracerProvider(
         resource=Resource.create(
             {"service.name": service, "deployment.environment.name": environment}
         )
     )
-    exporter = SafeExporter(store, endpoint, allow_remote)
+    exporter = SafeExporter(store, endpoint, allow_remote, export_token)
     provider.add_span_processor(SimpleSpanProcessor(exporter))
-    return provider.get_tracer("agentscope", "0.1.0"), provider, exporter
+    return provider.get_tracer("agentscope", "0.4.0"), provider, exporter

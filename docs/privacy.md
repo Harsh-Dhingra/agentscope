@@ -20,8 +20,8 @@ Collector-side filtering cannot undo data that already crossed a network boundar
 
 ## Local service protection
 
-Native startup binds the API to loopback. Compose publishes only to host loopback. Host header checks reduce DNS-rebinding exposure, and unrelated browser origins cannot submit mutations. These controls are not authentication. This is a single-user lab; do not publish its API to the internet or ingest private production data.
+Native startup binds the API to loopback. Compose publishes only to host loopback. Host header checks reduce DNS-rebinding exposure, and unrelated browser origins cannot submit mutations. The default mode additionally requires local credentials, binds each credential to a tenant, and checks operation permissions. Browser writes require a session CSRF token and exact same-origin checks. See [access control](access-control.md). This remains a local lab; do not publish its API to the internet or ingest private production data.
 
 ## Production additions
 
-Identity and tenant authorization; ingestion credentials and quotas; TLS; encryption-at-rest configuration; separate key management; explicit retention/deletion; authenticated resource attribution; audit events; safe export policy; incident response and backup/recovery procedures. None is implied by the word “local.”
+Enterprise identity federation; ingestion quotas; TLS; encryption-at-rest configuration; separate key management; explicit retention/deletion; authenticated resource attribution; tamper-evident audit storage; safe export policy; incident response and backup/recovery procedures. None is implied by the word “local.”

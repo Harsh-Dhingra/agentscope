@@ -10,6 +10,7 @@ from .telemetry import create_tracer
 mcp = FastMCP("AgentScope runbook tools")
 tracer, provider, exporter = create_tracer(
     service="mcp-runbook-worker",
+    export_token=os.environ.get("AGENTSCOPE_EXPORT_TOKEN"),
     endpoint=os.environ.get(
         "AGENTSCOPE_EXPORT_ENDPOINT", "http://127.0.0.1:8765/v1/traces"
     ),

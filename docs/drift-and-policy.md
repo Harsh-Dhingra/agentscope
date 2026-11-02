@@ -18,11 +18,11 @@ Policy order: permitted resource → tool allowlist → operator requirement →
 
 The synthetic worker's restart counter and idempotency result are updated in the same SQLite transaction. Reusing a key for a different principal/tool/target is rejected. Repeated or concurrent approval produces one counter increment. The decision record persists the policy result and whether execution occurred.
 
-This exactly-once effect is limited to a local SQLite transaction. Real remote tools would need downstream idempotency and recovery/outbox design. Demo principals are not authenticated users; the approve endpoint has no reviewer identity. Connect real services only after authentication, authorization, approval separation, durable auditing, and resource-specific policy are implemented.
+This exactly-once effect is limited to a local SQLite transaction. Real remote tools would need downstream idempotency and recovery/outbox design. Synthetic tool principals remain separate from the authenticated requester. Required-auth mode records the requester and requires a different reviewer principal to approve. Connect real services only after enterprise identity management, durable auditing, and resource-specific policy are implemented.
 
 ## Walkthrough
 
 1. Open **Performance & drift**, run **Stationary control**, then **Latency spike**. Read sample counts, effect size, and adjusted p.
 2. Open **Guardian** and submit **Unauthorized restart**. Inspect `Executed: No`.
 3. Submit **Restart needs approval**. It remains unexecuted until the review button is clicked.
-4. Approve it. Inspect the synthetic restart counter and compare with the automated concurrency test.
+4. Sign out, sign in with the reviewer key, and approve it. Inspect the synthetic restart counter and compare with the automated concurrency test.

@@ -11,7 +11,7 @@ import {
   Check,
   CircleAlert,
 } from "lucide-react";
-import { request } from "./Platform";
+import { request } from "./http";
 
 type Trace = {
   trace_id: string;
@@ -50,7 +50,13 @@ const badge = (value: string) =>
       ? "danger"
       : "warning";
 
-export function ReviewPanel({ inspect }: { inspect: (id: string) => void }) {
+export function ReviewPanel({
+  inspect,
+  canOperate = true,
+}: {
+  inspect: (id: string) => void;
+  canOperate?: boolean;
+}) {
   const [traces, setTraces] = useState<Trace[]>([]),
     [selected, setSelected] = useState(""),
     [reports, setReports] = useState<Review[]>([]),
@@ -121,7 +127,7 @@ export function ReviewPanel({ inspect }: { inspect: (id: string) => void }) {
           </label>
           <button
             className="primary"
-            disabled={busy || !selected}
+            disabled={busy || !canOperate || !selected}
             onClick={() => void run("/reviews")}
           >
             {busy ? (
@@ -226,7 +232,7 @@ export function ReviewPanel({ inspect }: { inspect: (id: string) => void }) {
         </div>
         <button
           className="primary"
-          disabled={busy || !scenario}
+          disabled={busy || !canOperate || !scenario}
           onClick={() => void run("/replays")}
         >
           <Play size={16} /> Replay with controls
@@ -276,6 +282,8 @@ export function ReviewPanel({ inspect }: { inspect: (id: string) => void }) {
 type Proposal = {
   id: string;
   candidate: string;
+  created_by?: string;
+  approved_by?: string;
   based_on_revision: number;
   eligible: boolean;
   status: string;
@@ -321,7 +329,19 @@ type ReleaseData = {
   minimum_samples: number;
 };
 
-export function AdaptPanel({ inspect }: { inspect: (id: string) => void }) {
+export function AdaptPanel({
+  inspect,
+  canOperate = true,
+  canReview = true,
+  subject = "",
+  development = false,
+}: {
+  inspect: (id: string) => void;
+  canOperate?: boolean;
+  canReview?: boolean;
+  subject?: string;
+  development?: boolean;
+}) {
   const [data, setData] = useState<ReleaseData | null>(null),
     [busy, setBusy] = useState(""),
     [error, setError] = useState("");
@@ -405,7 +425,7 @@ export function AdaptPanel({ inspect }: { inspect: (id: string) => void }) {
             <div className="release-buttons">
               <button
                 className="secondary"
-                disabled={!!busy || !data.state.candidate}
+                disabled={!!busy || !canOperate || !data.state.candidate}
                 onClick={() =>
                   void action(
                     "/batch",
@@ -418,7 +438,7 @@ export function AdaptPanel({ inspect }: { inspect: (id: string) => void }) {
               </button>
               <button
                 className="secondary"
-                disabled={!!busy || !data.state.candidate}
+                disabled={!!busy || !canOperate || !data.state.candidate}
                 onClick={() =>
                   void action(
                     "/batch",
@@ -433,6 +453,7 @@ export function AdaptPanel({ inspect }: { inspect: (id: string) => void }) {
                 className="primary"
                 disabled={
                   !!busy ||
+                  !canReview ||
                   !data.state.candidate ||
                   data.candidate_samples < data.minimum_samples
                 }
@@ -445,7 +466,9 @@ export function AdaptPanel({ inspect }: { inspect: (id: string) => void }) {
               <button
                 className="secondary"
                 disabled={
-                  !!busy || (!data.state.candidate && !data.state.previous)
+                  !!busy ||
+                  !canReview ||
+                  (!data.state.candidate && !data.state.previous)
                 }
                 onClick={() => void action("/rollback", {}, "Rolling back")}
               >
@@ -483,7 +506,7 @@ export function AdaptPanel({ inspect }: { inspect: (id: string) => void }) {
                 </dl>
                 <button
                   className="secondary"
-                  disabled={!!busy}
+                  disabled={!!busy || !canOperate}
                   onClick={() =>
                     void action(
                       "/proposals",
@@ -540,7 +563,12 @@ export function AdaptPanel({ inspect }: { inspect: (id: string) => void }) {
                   !data.state.candidate ? (
                     <button
                       className="primary"
-                      disabled={!!busy}
+                      disabled={
+                        !!busy ||
+                        !canReview ||
+                        (!development &&
+                          (!p.created_by || p.created_by === subject))
+                      }
                       onClick={() =>
                         void action(
                           "/proposals/" + p.id + "/approve",
@@ -636,10 +664,10 @@ export function AdaptPanel({ inspect }: { inspect: (id: string) => void }) {
         <strong>Release boundary</strong>
         <p>
           The router changes only this lab’s fixture workload. A failing
-          candidate run removes the candidate from routing. Approval is a local
-          button, not authenticated reviewer identity. This is a workflow
-          prototype; production needs held-out datasets, durable workflows,
-          identity, real traffic, SLOs, and deployment integrations.
+          candidate run removes the candidate from routing. Required-auth mode
+          verifies reviewer permissions and separates proposer from approver.
+          Production still needs enterprise SSO, held-out datasets, durable
+          workflows, real traffic, SLOs, and deployment integrations.
         </p>
       </div>
     </>

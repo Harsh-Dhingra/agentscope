@@ -1892,3 +1892,213 @@ footer {
     padding: 0 18px 18px;
   }
 }
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background:
+    radial-gradient(ellipse at top left, #e5f0eb, transparent 60%), #f5f7f9;
+}
+.login-card {
+  width: 100%;
+  max-width: 510px;
+  background: #fff;
+  border: 1px solid #dce5e4;
+  border-radius: 16px;
+  padding: 36px;
+  box-shadow: 0 18px 60px #173b2d0a;
+}
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -0.6px;
+}
+.login-brand > svg {
+  padding: 5px;
+  box-sizing: content-box;
+  background: #b9ebd9;
+  border-radius: 8px;
+  color: #265946;
+}
+.login-brand .pill {
+  margin-left: auto;
+}
+.login-icon {
+  margin: 32px 0 18px;
+  color: #65877b;
+}
+.login-card h1 {
+  font-size: 26px;
+  letter-spacing: -1px;
+  margin: 0 0 12px;
+}
+.login-card > p {
+  color: #70808d;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.login-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 26px 0;
+}
+.login-card label {
+  font-size: 12px;
+  font-weight: 600;
+}
+.login-card input {
+  padding: 13px;
+  border: 1px solid #cfdbd8;
+  min-width: 0;
+}
+.login-card .primary {
+  justify-content: center;
+  margin-top: 4px;
+  min-height: 44px;
+}
+.login-footnote {
+  display: flex;
+  gap: 10px;
+  color: #7d8f88;
+  border-top: 1px solid #e9eeec;
+  padding-top: 20px;
+  font-size: 12px;
+}
+.login-refresh {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 18px;
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: 12px;
+  color: #6b8c7e;
+}
+.login-setup {
+  padding: 16px;
+  background: #f3f7f4;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 12px;
+  color: #658071;
+}
+.login-setup p {
+  margin: 8px 0;
+}
+.login-setup code {
+  overflow-wrap: anywhere;
+}
+.signout {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 9px;
+  border: 1px solid #e1e7e8;
+  background: #fff;
+  font-size: 11px;
+}
+.access-context {
+  font-size: 11px;
+  color: #597568;
+  border-left: 2px solid #95bba9;
+  padding: 5px 12px;
+  margin-bottom: 23px;
+  background: #edf4f0;
+}
+.identity-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 190px;
+}
+.identity-summary small,
+.identity-summary span {
+  font-size: 12px;
+  color: #7b8c99;
+}
+.identity-summary strong {
+  font-size: 22px;
+}
+.access-role-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 15px;
+}
+.access-role-grid p {
+  font-size: 12px;
+  color: #738491;
+  margin-top: 12px;
+}
+.access-event {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 16px 22px;
+  border-top: 1px solid #edf0f3;
+}
+.access-event > div {
+  flex: 1;
+  min-width: 0;
+}
+.access-event strong {
+  font-size: 12px;
+}
+.access-event small {
+  font-weight: 400;
+  color: #8a9ba6;
+}
+.access-event code {
+  display: block;
+  font-size: 11px;
+  color: #7b8c99;
+  overflow-wrap: anywhere;
+  margin-top: 4px;
+}
+.access-event time {
+  font-size: 11px;
+  color: #8a9ba6;
+}
+.workspace small {
+  overflow-wrap: anywhere;
+}
+.workspace {
+  min-width: 0;
+}
+@media (max-width: 1100px) {
+  .access-role-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .login-card {
+    padding: 25px;
+  }
+  .access-role-grid {
+    grid-template-columns: 1fr;
+  }
+  .access-event {
+    flex-wrap: wrap;
+  }
+  .access-event time {
+    margin-left: auto;
+  }
+  .top-info {
+    gap: 6px;
+  }
+  .signout {
+    font-size: 10px;
+  }
+  .access-context {
+    font-size: 11px;
+  }
+  .workspace small {
+    display: none;
+  }
+}

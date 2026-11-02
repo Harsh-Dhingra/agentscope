@@ -44,10 +44,14 @@ No diagnosis is represented as certainty about hallucination. The response check
 
 The main app and MCP subprocess use separate tracer providers but share trace context. The worker returns a synthetic policy through MCP stdio and independently sends its span over HTTP. This is a real process boundary; it is not a tested cloud boundary.
 
-An actual hybrid deployment would require collector authentication, TLS, trusted per-tenant resource attribution, durable buffering during outages, controlled export destinations, and a retention policy. Trace metadata such as `service.name` is supplied by the emitter and must not be treated as an authenticated identity.
+An actual hybrid deployment would require enterprise credential lifecycle, a verified TLS topology, trusted resource attribution within each credential-bound tenant, durable buffering during outages, controlled export destinations, and a retention policy. Trace metadata such as `service.name` is supplied by the emitter and must not be treated as an authenticated identity.
 
 ## Failure behavior
 
 Ingestion rejects invalid batches atomically. The bundled exporter counts failed batches; it does not retry or durably buffer them. The dashboard shows only received spans and may temporarily show an incomplete trace. Demo runs are serialized with an application lock to protect a local model from accidental concurrent runs.
 
 Unexpected model-service failures produce a visible failed run. There is no cloud fallback. A later version should expose exporter failure counters and ingestion saturation in an operational health view.
+
+## Identity boundary (v0.4)
+
+Requests authenticate before selecting a tenant SQLite database. Four roles control reads, execution, approval, and ingestion. Trace resource attributes and client tenant headers cannot choose that database. Browser sessions use HttpOnly cookies and CSRF checks; approvals require a different subject from the requester. See [access control](access-control.md) for provisioning and limitations.

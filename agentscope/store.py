@@ -1,10 +1,12 @@
 import json
+import os
 import sqlite3
 import threading
 import time
 from pathlib import Path
 
 DOCUMENT_TABLES = {
+    "access_audit",
     "runs",
     "experiments",
     "drift_reports",
@@ -23,9 +25,11 @@ class Store:
 
     def __init__(self, path: str):
         if path != ":memory:":
-            Path(path).parent.mkdir(parents=True, exist_ok=True)
+            Path(path).parent.mkdir(parents=True, exist_ok=True, mode=0o700)
         self.lock = threading.RLock()
         self.db = sqlite3.connect(path, check_same_thread=False)
+        if path != ":memory:":
+            os.chmod(path, 0o600)
         self.db.row_factory = sqlite3.Row
         with self.db:
             self.db.execute("PRAGMA journal_mode=WAL")

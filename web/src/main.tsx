@@ -5,6 +5,8 @@ import {
   TrendingUp,
   Users,
   GitBranch,
+  KeyRound,
+  LogOut,
   Workflow,
   FlaskConical,
   Plug,
@@ -24,6 +26,8 @@ import {
 } from "lucide-react";
 import { ReviewPanel, AdaptPanel } from "./Control";
 import { DriftPanel, GuardianPanel } from "./Platform";
+import { AuthGate, AccessPanel, type Session } from "./Auth";
+import { request as api } from "./http";
 import "./style.css";
 
 type Summary = {
@@ -133,6 +137,12 @@ const pages: Record<
     description:
       "Move a tested configuration through review, canary validation, and controlled promotion.",
   },
+  access: {
+    label: "Identity & access",
+    title: "Know who can change what.",
+    description:
+      "Credential-bound workspaces, distinct permissions, and inspectable access records.",
+  },
   connect: {
     label: "Connect an agent",
     title: "Instrument once. See the path.",
@@ -141,31 +151,15 @@ const pages: Record<
   },
 };
 const pretty = (s: string) => labels[s] || s.replaceAll("_", " ");
-async function api<T>(path: string, body?: unknown): Promise<T> {
-  const r = await fetch(
-    "/api" + path,
-    body !== undefined
-      ? {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        }
-      : undefined,
-  );
-  if (!r.ok) {
-    let error;
-    try {
-      error = await r.json();
-    } catch {
-      error = { detail: r.statusText };
-    }
-    throw new Error(
-      typeof error.detail === "string" ? error.detail : "Invalid request",
-    );
-  }
-  return r.json();
-}
-function App() {
+function App({
+  session,
+  logout,
+}: {
+  session: Session;
+  logout: () => Promise<void>;
+}) {
+  const canOperate = session.permissions.includes("operate"),
+    canReview = session.permissions.includes("approve");
   const [page, setPage] = useState("traces"),
     [traces, setTraces] = useState<Summary[]>([]),
     [selected, setSelected] = useState<string | null>(null),
@@ -288,7 +282,10 @@ function App() {
         <div className="workspace">
           <span className="workspace-icon">H</span>
           <div>
-            Harsh’s workspace<small>Local development</small>
+            {session.tenant}
+            <small>
+              {session.subject} · {session.role}
+            </small>
           </div>
         </div>
         <div className="nav-label">OBSERVABILITY</div>
@@ -300,6 +297,7 @@ function App() {
             ["guardian", "Guardian", ShieldCheck],
             ["review", "Review & replay", Users],
             ["adapt", "Adapt & release", GitBranch],
+            ["access", "Identity & access", KeyRound],
             ["connect", "Connect an agent", Plug],
           ].map(([key, label, Icon]) => (
             <button
@@ -325,7 +323,7 @@ function App() {
         <div className="sidebar-bottom">
           <span className={connected ? "status-dot" : "status-dot off"} />
           {connected ? "Collector connected" : "Collector unavailable"}
-          <span className="build">v0.3</span>
+          <span className="build">v0.4</span>
         </div>
       </aside>
       <div className="main-shell">
@@ -335,7 +333,19 @@ function App() {
             <strong>{pages[page].label}</strong>
           </span>
           <div className="top-info">
-            <span className="pill neutral">LOCAL</span>
+            <span className="pill neutral">
+              {session.mode === "development"
+                ? "DEV · AUTH OFF"
+                : session.role.toUpperCase()}
+            </span>
+            {session.mode !== "development" && (
+              <button
+                className="signout"
+                onClick={() => void logout().catch((e) => setError(String(e)))}
+              >
+                <LogOut size={14} /> Sign out
+              </button>
+            )}
             <a
               href="https://github.com/Harsh-Dhingra/agentscope"
               target="_blank"
@@ -357,6 +367,11 @@ function App() {
           ))}
         </nav>
         <main>
+          <div className="access-context">
+            {session.mode === "development"
+              ? "Explicit development mode: authentication is disabled."
+              : `Workspace ${session.tenant} · ${session.subject} · ${canOperate ? "Can run and propose; a different reviewer must approve changes." : canReview ? "Can review and approve; workload execution requires an operator." : "Read-only access. Workload and approval controls are disabled."}`}
+          </div>
           <div className="page-heading">
             <div>
               <div className="eyebrow">AGENT RELIABILITY LAB</div>
@@ -381,8 +396,10 @@ function App() {
               </button>
             </div>
           )}
+          {page === "access" && <AccessPanel session={session} />}
           {page === "review" && (
             <ReviewPanel
+              canOperate={canOperate}
               inspect={(id) => {
                 setSelected(id);
                 setPage("traces");
@@ -392,6 +409,10 @@ function App() {
           )}
           {page === "adapt" && (
             <AdaptPanel
+              canOperate={canOperate}
+              canReview={canReview}
+              subject={session.subject}
+              development={session.mode === "development"}
               inspect={(id) => {
                 setSelected(id);
                 setPage("traces");
@@ -399,8 +420,15 @@ function App() {
               }}
             />
           )}
-          {page === "drift" && <DriftPanel />}
-          {page === "guardian" && <GuardianPanel />}
+          {page === "drift" && <DriftPanel canOperate={canOperate} />}
+          {page === "guardian" && (
+            <GuardianPanel
+              canOperate={canOperate}
+              canReview={canReview}
+              subject={session.subject}
+              development={session.mode === "development"}
+            />
+          )}
           {page === "traces" && (
             <>
               <section className="metrics" aria-label="Observed trace metrics">
@@ -490,7 +518,7 @@ function App() {
                   <button
                     className="primary"
                     onClick={() => void run()}
-                    disabled={busy}
+                    disabled={busy || !canOperate}
                   >
                     {busy ? (
                       <LoaderCircle className="spin" size={15} />
@@ -864,7 +892,7 @@ function App() {
                 </div>
                 <button
                   className="primary"
-                  disabled={busy}
+                  disabled={busy || !canOperate}
                   onClick={() => void evaluate()}
                 >
                   {busy ? (
@@ -971,7 +999,7 @@ function App() {
                   The bundled exporter removes non-allowlisted attributes before
                   transport.
                 </p>
-                <pre>{`from agentscope.telemetry import create_tracer\n\ntracer, provider, exporter = create_tracer(\n    service="my-agent",\n    endpoint="http://127.0.0.1:8765/v1/traces",\n)\nwith tracer.start_as_current_span("agent.run"):\n    with tracer.start_as_current_span("tool.lookup"):\n        pass\nprovider.shutdown()`}</pre>
+                <pre>{`import os\nfrom agentscope.telemetry import create_tracer\n\ntracer, provider, exporter = create_tracer(\n    service="my-agent",\n    export_token=os.environ["AGENTSCOPE_EXPORT_TOKEN"],\n    endpoint="http://127.0.0.1:8765/v1/traces",\n)\nwith tracer.start_as_current_span("agent.run"):\n    with tracer.start_as_current_span("tool.lookup"):\n        pass\nprovider.shutdown()`}</pre>
               </section>
               <section className="connect-card">
                 <Plug size={24} />
@@ -1046,4 +1074,14 @@ function Metric({
     </div>
   );
 }
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <AuthGate>
+    {(session, logout) => (
+      <App
+        key={session.tenant + session.subject + session.role}
+        session={session}
+        logout={logout}
+      />
+    )}
+  </AuthGate>,
+);

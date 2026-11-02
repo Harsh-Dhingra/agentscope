@@ -66,7 +66,7 @@ def runbook(current=True):
     }
 
 
-async def mcp_lookup(current, tracer):
+async def mcp_lookup(current, tracer, export_token=None):
     from mcp import ClientSession, StdioServerParameters
     from mcp.client.stdio import stdio_client
 
@@ -78,6 +78,8 @@ async def mcp_lookup(current, tracer):
     env["AGENTSCOPE_EXPORT_ENDPOINT"] = os.environ.get(
         "AGENTSCOPE_DEMO_EXPORT_ENDPOINT", "http://127.0.0.1:8765/v1/traces"
     )
+    if export_token:
+        env["AGENTSCOPE_EXPORT_TOKEN"] = export_token
     params = StdioServerParameters(
         command=sys.executable, args=["-m", "agentscope.mcp_server"], env=env
     )
@@ -94,7 +96,7 @@ async def mcp_lookup(current, tracer):
                 return json.loads(result.content[0].text)
 
 
-async def execute(request: RunRequest, store):
+async def execute(request: RunRequest, store, export_token=None):
     started = time.perf_counter()
     run_id = str(uuid.uuid4())
     tracer, provider, exporter = create_tracer(store=store, service="incident-agent")
@@ -142,7 +144,7 @@ async def execute(request: RunRequest, store):
                             and request.variant == "baseline"
                         )
                         document = (
-                            await mcp_lookup(current, tracer)
+                            await mcp_lookup(current, tracer, export_token)
                             if request.transport == "mcp"
                             else runbook(current)
                         )

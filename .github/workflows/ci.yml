@@ -29,7 +29,10 @@ jobs:
       - run: |
           docker compose up -d
           for i in $(seq 1 30); do
-            if curl --fail http://127.0.0.1:8765/api/health; then exit 0; fi
+            if curl --fail http://127.0.0.1:8765/api/health; then
+              test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8765/api/traces)" = "401"
+              exit $?
+            fi
             sleep 2
           done
           docker compose logs

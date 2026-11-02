@@ -1,10 +1,12 @@
 """Run with the collector listening on localhost:8765."""
 
 import time
+import os
 from agentscope.telemetry import create_tracer
 
 tracer, provider, exporter = create_tracer(
-    service="external-python-agent", endpoint="http://127.0.0.1:8765/v1/traces"
+    service="external-python-agent", endpoint="http://127.0.0.1:8765/v1/traces",
+    export_token=os.environ["AGENTSCOPE_EXPORT_TOKEN"]
 )
 with tracer.start_as_current_span(
     "agent.run", attributes={"agent.runtime": "external", "agent.role": "coordinator"}

@@ -163,7 +163,8 @@ def test_http_release_workflow_uses_server_evidence(tmp_path):
     from agentscope.api import create_app
 
     with TestClient(
-        create_app(str(tmp_path / "releases.db")), base_url="http://127.0.0.1"
+        create_app(str(tmp_path / "releases.db"), auth_mode="development"),
+        base_url="http://127.0.0.1",
     ) as client:
         assert (
             client.post(

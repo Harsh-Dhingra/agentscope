@@ -35,7 +35,7 @@ Explain that 4/4 passing authored cases is a narrow regression result. Discuss a
 - What is filtered before export, and what privacy problems remain?
 - How does duplicate ingestion behave?
 - What would happen if the collector went offline?
-- How would you authenticate and isolate multiple tenants?
+- How do credential-bound tenants work, and what remains before enterprise SSO and resource isolation?
 - How would you measure whether engineers diagnose incidents faster?
 
 For business impact, propose a timed debugging study with the same incident set, equivalent participants, and success criteria. Present the plan as a future measurement; do not report unmeasured debugging-time reductions.
@@ -58,3 +58,7 @@ Keep the live section to one coherent failure → evidence → fix → release s
 Allow about 2 minutes for framing, 3 for architecture, 6 for the story, and 4 for decisions and limits. Be ready to explain why the first release has deterministic analyzers, what a statistical shift does and does not prove, and why fixture success cannot establish production quality.
 
 Before the interview, make a change yourself: adjust one threshold or add a new synthetic fault with an independently meaningful assertion, run the test, and explain the failure it catches. Your ownership story should distinguish your decisions, AI-assisted implementation, tested behavior, and remaining work.
+
+## Identity demonstration (v0.4)
+
+Sign in as operator, submit a Guardian restart request, and show that approval is disabled. Sign out and sign in as reviewer; approve and inspect both recorded principals. Open Identity & access to inspect the tenant-scoped mutation audit. Explain that these are locally issued identities, not verified separate humans or enterprise SSO.

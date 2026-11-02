@@ -19,8 +19,11 @@ def store():
 
 
 @pytest.fixture
-def client():
-    with TestClient(create_app(":memory:"), base_url="http://localhost") as c:
+def client(tmp_path):
+    with TestClient(
+        create_app(str(tmp_path / "core.db"), auth_mode="development"),
+        base_url="http://localhost",
+    ) as c:
         yield c
 
 

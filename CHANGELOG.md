@@ -1,3 +1,10 @@
+# v0.4.0 — Local identity and tenant access
+
+- Authentication is now required by default (breaking change). Initialize local credentials before using the UI or API.
+- Four roles, credential-bound tenant databases, revocable HttpOnly browser sessions, CSRF checks, and requester/reviewer separation.
+- Tenant-scoped mutation audit and temporary MCP collector credentials.
+- 74 backend tests and a production frontend build passed locally. Enterprise SSO, durable queues, retention and hybrid deployment remain future work.
+
 # Changelog
 
 Development history records actual work timestamps. Tags mark functional milestones.

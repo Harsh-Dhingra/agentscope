@@ -124,7 +124,8 @@ def test_gateway_http_approval_and_invalid_scenario(tmp_path):
     from agentscope.api import create_app
 
     with TestClient(
-        create_app(str(tmp_path / "http.db")), base_url="http://127.0.0.1"
+        create_app(str(tmp_path / "http.db"), auth_mode="development"),
+        base_url="http://127.0.0.1",
     ) as client:
         assert (
             client.post(

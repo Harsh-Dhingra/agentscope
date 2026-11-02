@@ -8,21 +8,7 @@ import {
   LockKeyhole,
 } from "lucide-react";
 
-export async function request<T>(path: string, body?: unknown): Promise<T> {
-  const r = await fetch(
-    "/api" + path,
-    body === undefined
-      ? undefined
-      : {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        },
-  );
-  const data = await r.json();
-  if (!r.ok) throw new Error(data.detail || r.statusText);
-  return data;
-}
+import { request } from "./http";
 type Metric = {
   name: string;
   kind: string;
@@ -56,6 +42,8 @@ type PolicyEvent = {
   action: { tool: string; target: string; idempotency_key: string };
   decision: string;
   reason: string;
+  created_by?: string;
+  approved_by?: string;
   executed: boolean;
   replayed?: boolean;
   result: Record<string, unknown> | null;
@@ -70,7 +58,7 @@ function format(n: number) {
   return n === 0 ? "0" : Math.abs(n) >= 10 ? n.toFixed(1) : n.toFixed(3);
 }
 
-export function DriftPanel() {
+export function DriftPanel({ canOperate = true }: { canOperate?: boolean }) {
   const [reports, setReports] = useState<Report[]>([]),
     [selected, setSelected] = useState<string | null>(null),
     [scenario, setScenario] = useState("latency_spike"),
@@ -126,7 +114,7 @@ export function DriftPanel() {
           </label>
           <button
             className="primary"
-            disabled={busy}
+            disabled={busy || !canOperate}
             onClick={() => void run()}
           >
             {busy ? (
@@ -305,7 +293,17 @@ function Distribution({ metric }: { metric: Metric }) {
   );
 }
 
-export function GuardianPanel() {
+export function GuardianPanel({
+  canOperate = true,
+  canReview = true,
+  subject = "",
+  development = false,
+}: {
+  canOperate?: boolean;
+  canReview?: boolean;
+  subject?: string;
+  development?: boolean;
+}) {
   const [events, setEvents] = useState<PolicyEvent[]>([]),
     [scenario, setScenario] = useState("unauthorized_write"),
     [busy, setBusy] = useState(false),
@@ -367,7 +365,7 @@ export function GuardianPanel() {
           </label>
           <button
             className="primary"
-            disabled={busy}
+            disabled={busy || !canOperate}
             onClick={() => void run()}
           >
             {busy ? (
@@ -424,8 +422,18 @@ export function GuardianPanel() {
               </div>
               <p>{event.reason}</p>
               <div className="policy-facts">
+                {event.created_by && (
+                  <span>
+                    Requested by <strong>{event.created_by}</strong>
+                  </span>
+                )}
+                {event.approved_by && (
+                  <span>
+                    Approved by <strong>{event.approved_by}</strong>
+                  </span>
+                )}
                 <span>
-                  Principal <strong>{event.principal}</strong>
+                  Tool principal <strong>{event.principal}</strong>
                 </span>
                 <span>
                   Role <strong>{event.role}</strong>
@@ -443,7 +451,12 @@ export function GuardianPanel() {
               {event.decision === "approval_required" && (
                 <button
                   className="primary"
-                  disabled={busy}
+                  disabled={
+                    busy ||
+                    !canReview ||
+                    (!development &&
+                      (!event.created_by || event.created_by === subject))
+                  }
                   onClick={() => void approve(event.id)}
                 >
                   Approve demo restart
@@ -470,10 +483,9 @@ export function GuardianPanel() {
           transaction protect against duplicate effects.
         </p>
         <p>
-          This local lab has no authenticated human reviewer or production
-          identity provider. Approval here is an explicit demo action; deploy
-          real authentication, authorization, and audit controls before
-          connecting live tools.
+          Required-auth mode checks reviewer permissions and requires a
+          different principal from the requester. Local credentials are not
+          enterprise SSO. Tools still operate only on synthetic resources.
         </p>
       </div>
     </>

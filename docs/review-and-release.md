@@ -39,6 +39,6 @@ An injected candidate availability failure records a failed span and canary outc
 
 ## Important boundaries
 
-This is a single-process, local workflow prototype using synthetic requests. It does not deploy or modify a remote model, Kubernetes service, Salesforce org, or cloud environment. It does not learn or fine-tune a model. Local approval buttons are not authenticated reviewer identities. Release events are inspectable application records, not tamper-evident audit storage.
+This is a single-process, local workflow prototype using synthetic requests. It does not deploy or modify a remote model, Kubernetes service, Salesforce org, or cloud environment. It does not learn or fine-tune a model. Required-auth mode checks the reviewer role and rejects the proposal creator as approver. Credentials are locally provisioned, not enterprise SSO. Release events are inspectable application records, not tamper-evident audit storage.
 
-External deployment needs durable workflow state transitions, separate reviewer authorization, actual traffic observations, held-out evaluations, failure budgets, rollback-compatible migrations, and deployment-specific adapters. The local database and process lock do not replace those requirements.
+External deployment needs durable workflow state transitions, enterprise identity lifecycle, actual traffic observations, held-out evaluations, failure budgets, rollback-compatible migrations, and deployment-specific adapters. The local database and process lock do not replace those requirements.
