@@ -55,3 +55,7 @@ Unexpected model-service failures produce a visible failed run. There is no clou
 ## Identity boundary (v0.4)
 
 Requests authenticate before selecting a tenant SQLite database. Four roles control reads, execution, approval, and ingestion. Trace resource attributes and client tenant headers cannot choose that database. Browser sessions use HttpOnly cookies and CSRF checks; approvals require a different subject from the requester. See [access control](access-control.md) for provisioning and limitations.
+
+## Optional durable sender (v0.5)
+
+Redacted protobuf → bounded SQLite outbox → HTTP worker → authenticated collector → tenant span transaction → acknowledgement → outbox deletion. Lost acknowledgements can cause replay; span IDs deduplicate storage. The sender persists retry deadlines and quarantines non-retryable responses. See [delivery semantics](durable-delivery.md).

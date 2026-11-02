@@ -1,3 +1,10 @@
+# v0.5.0 — Durable exporter and recovery
+
+- Optional bounded SQLite sender outbox with redaction before disk, restart recovery, credential/destination binding and single-owner locking.
+- Retry/backoff for transient OTLP failures; quarantine for permanent or partial responses; payload capacity and delivery counters.
+- Collector storage failures now return retryable 503 instead of malformed-payload 400.
+- Recovery example and read-only queue inspection CLI. Retention and distributed queues remain future work.
+
 # v0.4.0 — Local identity and tenant access
 
 - Authentication is now required by default (breaking change). Initialize local credentials before using the UI or API.

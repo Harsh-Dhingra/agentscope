@@ -323,7 +323,7 @@ function App({
         <div className="sidebar-bottom">
           <span className={connected ? "status-dot" : "status-dot off"} />
           {connected ? "Collector connected" : "Collector unavailable"}
-          <span className="build">v0.4</span>
+          <span className="build">v0.5</span>
         </div>
       </aside>
       <div className="main-shell">

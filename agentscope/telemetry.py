@@ -133,7 +133,14 @@ class SafeExporter(SpanExporter):
     """Redact before storage/transport. HTTP export is explicit and best effort."""
 
     def __init__(
-        self, store=None, endpoint=None, allow_remote=False, export_token=None
+        self,
+        store=None,
+        endpoint=None,
+        allow_remote=False,
+        export_token=None,
+        outbox_path=None,
+        queue_max_batches=1000,
+        queue_max_bytes=32 * 1024 * 1024,
     ):
         self.store, self.endpoint = store, endpoint
         self.export_token = export_token
@@ -153,11 +160,25 @@ class SafeExporter(SpanExporter):
                 and url.scheme != "https"
             ):
                 raise ValueError("Authenticated remote export requires HTTPS")
+        self.delivery = None
+        if outbox_path:
+            if not endpoint or store is not None:
+                raise ValueError(
+                    "Durable export requires an endpoint and no direct store"
+                )
+            from .delivery import DurableDelivery
+
+            self.delivery = DurableDelivery(
+                outbox_path, endpoint, export_token, queue_max_batches, queue_max_bytes
+            )
         self.failed_batches = 0
 
     def export(self, spans):
         request = encode_spans(spans)
         try:
+            if self.delivery:
+                self.delivery.enqueue(request.SerializeToString())
+                return SpanExportResult.SUCCESS
             if self.store:
                 self.store.ingest(decode_otlp(request))
             if self.endpoint:
@@ -180,6 +201,13 @@ class SafeExporter(SpanExporter):
             self.failed_batches += 1
             return SpanExportResult.FAILURE
 
+    def force_flush(self, timeout_millis=30000):
+        return self.delivery.flush(timeout_millis) if self.delivery else True
+
+    def shutdown(self):
+        if self.delivery:
+            self.delivery.close()
+
 
 def create_tracer(
     service="demo-agent",
@@ -188,12 +216,23 @@ def create_tracer(
     endpoint=None,
     allow_remote=False,
     export_token=None,
+    outbox_path=None,
+    queue_max_batches=1000,
+    queue_max_bytes=32 * 1024 * 1024,
 ):
     provider = TracerProvider(
         resource=Resource.create(
             {"service.name": service, "deployment.environment.name": environment}
         )
     )
-    exporter = SafeExporter(store, endpoint, allow_remote, export_token)
+    exporter = SafeExporter(
+        store,
+        endpoint,
+        allow_remote,
+        export_token,
+        outbox_path,
+        queue_max_batches,
+        queue_max_bytes,
+    )
     provider.add_span_processor(SimpleSpanProcessor(exporter))
-    return provider.get_tracer("agentscope", "0.4.0"), provider, exporter
+    return provider.get_tracer("agentscope", "0.5.0"), provider, exporter

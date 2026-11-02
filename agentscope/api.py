@@ -93,7 +93,7 @@ def create_app(db_path=None, auth_mode=None, identity_path=None):
         tenants.close()
         identities.close()
 
-    app = FastAPI(title="AgentScope", version="0.4.0", lifespan=lifespan)
+    app = FastAPI(title="AgentScope", version="0.5.0", lifespan=lifespan)
     app.state.auth_mode = mode
     app.state.identities = identities
     app.state.tenants = tenants
@@ -118,7 +118,7 @@ def create_app(db_path=None, auth_mode=None, identity_path=None):
     def health():
         return {
             "status": "ok",
-            "version": "0.4.0",
+            "version": "0.5.0",
             "storage": "sqlite",
             "scope": "local deployment; credential-bound tenants"
             if mode == "required"
@@ -160,11 +160,14 @@ def create_app(db_path=None, auth_mode=None, identity_path=None):
             else:
                 raise HTTPException(415, "Use OTLP HTTP protobuf or JSON")
             spans = decode_otlp(message)
-            store.ingest(spans)
         except HTTPException:
             raise
         except Exception:
             raise HTTPException(400, "Invalid OTLP payload")
+        try:
+            store.ingest(spans)
+        except Exception:
+            raise HTTPException(503, "Trace storage unavailable", headers={"Retry-After": "1"})
         return Response(
             content=b"" if content_type == "application/x-protobuf" else b"{}",
             media_type=content_type,

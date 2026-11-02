@@ -25,3 +25,7 @@ Native startup binds the API to loopback. Compose publishes only to host loopbac
 ## Production additions
 
 Enterprise identity federation; ingestion quotas; TLS; encryption-at-rest configuration; separate key management; explicit retention/deletion; authenticated resource attribution; tamper-evident audit storage; safe export policy; incident response and backup/recovery procedures. None is implied by the word “local.”
+
+## Export outbox
+
+Optional durable export writes already-redacted protobuf to private local files. Credentials are used in memory and never stored as plaintext; the queue stores a destination/credential binding digest. Permitted metadata is not encrypted. Pending and quarantined data have no automatic retention cleanup. See [durable delivery](durable-delivery.md).
