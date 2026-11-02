@@ -24,6 +24,7 @@ from .telemetry import decode_otlp
 from .analysis import diagnose, summarize
 from .demo import RunRequest, execute, experiment, SCENARIOS
 from .drift import DriftRequest, analyze, demo_request
+from .trace_drift import TraceWindows, compare
 from .guardian import demo_action, approve
 from pydantic import BaseModel, ConfigDict, Field
 from .review import review_trace
@@ -93,7 +94,7 @@ def create_app(db_path=None, auth_mode=None, identity_path=None):
         tenants.close()
         identities.close()
 
-    app = FastAPI(title="AgentScope", version="0.6.0", lifespan=lifespan)
+    app = FastAPI(title="AgentScope", version="0.7.0", lifespan=lifespan)
     app.state.auth_mode = mode
     app.state.identities = identities
     app.state.tenants = tenants
@@ -118,7 +119,7 @@ def create_app(db_path=None, auth_mode=None, identity_path=None):
     def health():
         return {
             "status": "ok",
-            "version": "0.6.0",
+            "version": "0.7.0",
             "storage": "sqlite",
             "scope": "local deployment; credential-bound tenants"
             if mode == "required"
@@ -167,7 +168,9 @@ def create_app(db_path=None, auth_mode=None, identity_path=None):
         try:
             store.ingest(spans)
         except Exception:
-            raise HTTPException(503, "Trace storage unavailable", headers={"Retry-After": "1"})
+            raise HTTPException(
+                503, "Trace storage unavailable", headers={"Retry-After": "1"}
+            )
         return Response(
             content=b"" if content_type == "application/x-protobuf" else b"{}",
             media_type=content_type,
@@ -224,6 +227,13 @@ def create_app(db_path=None, auth_mode=None, identity_path=None):
     @app.post("/api/drift/analyze")
     def drift_analyze(request: DriftRequest, store: Store = Depends(tenant_store)):
         return analyze(request, store)
+
+    @app.post("/api/drift/traces")
+    def trace_drift(request: TraceWindows, store: Store = Depends(tenant_store)):
+        try:
+            return compare(request, store)
+        except ValueError as exc:
+            raise HTTPException(422, str(exc))
 
     @app.post("/api/drift/demo")
     def drift_demo(request: DriftDemoRequest, store: Store = Depends(tenant_store)):

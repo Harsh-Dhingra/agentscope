@@ -62,3 +62,7 @@ Before the interview, make a change yourself: adjust one threshold or add a new 
 ## Identity demonstration (v0.4)
 
 Sign in as operator, submit a Guardian restart request, and show that approval is disabled. Sign out and sign in as reviewer; approve and inspect both recorded principals. Open Identity & access to inspect the tenant-scoped mutation audit. Explain that these are locally issued identities, not verified separate humans or enterprise SSO.
+
+## Trace-derived monitoring (v0.7)
+
+Use the [synthetic OTLP fixture](trace-drift.md) to demonstrate a shift across 30 reference and 30 current traces. Inspect sample sizes and corrected p-values, then follow a chart’s source trace to its execution. Compare an empty service to show explicit insufficient evidence. Explain why changed distributions do not prove task-quality degradation.

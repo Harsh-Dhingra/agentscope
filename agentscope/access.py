@@ -20,6 +20,7 @@ OPERATIONS = {
     "/api/experiments",
     "/api/drift/analyze",
     "/api/drift/demo",
+    "/api/drift/traces",
     "/api/guardian/demo",
     "/api/reviews",
     "/api/replays",

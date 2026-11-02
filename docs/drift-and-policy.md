@@ -4,7 +4,7 @@
 
 `POST /api/drift/analyze` accepts up to six named numeric metrics, each with a reference and current sample of 30–256 finite values. Categories are input, output, quality, retrieval, and operational. These are our monitoring categories, not claims about another vendor's implementation.
 
-Each comparison reports a two-sample empirical KS distance, a Monte Carlo label-permutation p-value (399 permutations, fixed seed, add-one correction), and Bonferroni adjustment across that request's metrics. An alert requires adjusted p < alpha and distance ≥ minimum effect. Defaults are 0.05 and 0.2. Histograms and summary statistics are saved; raw arrays are not stored in reports.
+Each comparison reports a two-sample empirical KS distance, a Monte Carlo label-permutation p-value (399 permutations, fixed seed, add-one correction), and Bonferroni adjustment across that request's metrics. An alert requires adjusted p < alpha and distance ≥ minimum effect. Defaults are 0.05 and 0.2. For custom numeric-window requests, histograms and summary statistics are saved; raw arrays are not stored. The v0.7 [collected-trace workflow](trace-drift.md) separately stores derived per-trace metric values and IDs for evidence linkage.
 
 Observations must be exchangeable under the null. Repeated measurements, seasonality, correlated time series, repeated monitoring, and population changes require a stronger study design and calibration. Correction within one request does not control false alarms across repeated requests. Five fixture categories do not mean five universally solved drift problems. A shift does not prove degradation or cause; concept drift needs target/outcome information.
 

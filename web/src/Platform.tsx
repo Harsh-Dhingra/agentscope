@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 
 import { request } from "./http";
-type Metric = {
+export type Metric = {
   name: string;
   kind: string;
   unit: string;
@@ -58,7 +58,11 @@ function format(n: number) {
   return n === 0 ? "0" : Math.abs(n) >= 10 ? n.toFixed(1) : n.toFixed(3);
 }
 
-export function DriftPanel({ canOperate = true }: { canOperate?: boolean }) {
+export function FixtureDriftPanel({
+  canOperate = true,
+}: {
+  canOperate?: boolean;
+}) {
   const [reports, setReports] = useState<Report[]>([]),
     [selected, setSelected] = useState<string | null>(null),
     [scenario, setScenario] = useState("latency_spike"),
@@ -66,8 +70,10 @@ export function DriftPanel({ canOperate = true }: { canOperate?: boolean }) {
     [error, setError] = useState("");
   async function refresh() {
     const all = await request<Report[]>("/drift/reports");
-    setReports(all);
-    setSelected((s) => s || all[0]?.id || null);
+    setReports(all.filter((r) => r.source !== "collected_traces"));
+    setSelected(
+      (s) => s || all.find((r) => r.source !== "collected_traces")?.id || null,
+    );
   }
   useEffect(() => {
     void refresh().catch((e) => setError(String(e)));
@@ -243,7 +249,7 @@ export function DriftPanel({ canOperate = true }: { canOperate?: boolean }) {
     </>
   );
 }
-function Distribution({ metric }: { metric: Metric }) {
+export function Distribution({ metric }: { metric: Metric }) {
   const h = metric.histogram,
     max = Math.max(...h.reference, ...h.current, 0.01);
   return (

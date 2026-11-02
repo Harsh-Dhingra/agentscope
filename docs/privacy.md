@@ -29,3 +29,7 @@ Enterprise identity federation; ingestion quotas; TLS; encryption-at-rest config
 ## Export outbox
 
 Optional durable export writes already-redacted protobuf to private local files. Credentials are used in memory and never stored as plaintext; the queue stores a destination/credential binding digest. Permitted metadata is not encrypted. Pending and quarantined data have no automatic retention cleanup. v0.6 supports explicit quarantine expiry; it is logical row deletion, not secure erasure or backup deletion. Maintenance audit records retain OS actor identifiers and batch metadata. See [durable delivery](durable-delivery.md).
+
+## Trace-derived monitoring
+
+Collected-window reports retain numeric observations and source trace IDs inside the tenant database, along with the requested service/time windows. These are derived metadata, not prompts or completions. Removing a source trace would not automatically remove its saved report evidence; collector/report retention remains future work.

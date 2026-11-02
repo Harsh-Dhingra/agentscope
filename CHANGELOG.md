@@ -1,3 +1,10 @@
+# v0.7.0 — Drift from collected traces
+
+- Tenant-scoped service/time cohorts with trace-backed observations and evidence links.
+- Duration, reported tokens, tool error rates and explicit retries, with missing/insufficient evidence states.
+- Snapshot comparisons, bounded windows, sample counts, KS effects and corrected permutation tests.
+- Dashboard workflow and an explicitly synthetic OTLP fixture for demonstration. No automatic quality-degradation claims or scheduled alerts.
+
 # v0.6.0 — Audited outbox maintenance
 
 - Offline metadata inspection, exact-plan quarantine recovery and quarantine-age retention.

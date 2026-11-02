@@ -25,7 +25,8 @@ import {
   X,
 } from "lucide-react";
 import { ReviewPanel, AdaptPanel } from "./Control";
-import { DriftPanel, GuardianPanel } from "./Platform";
+import { GuardianPanel } from "./Platform";
+import { DriftPanel } from "./TraceDrift";
 import { AuthGate, AccessPanel, type Session } from "./Auth";
 import { request as api } from "./http";
 import "./style.css";
@@ -323,7 +324,7 @@ function App({
         <div className="sidebar-bottom">
           <span className={connected ? "status-dot" : "status-dot off"} />
           {connected ? "Collector connected" : "Collector unavailable"}
-          <span className="build">v0.6</span>
+          <span className="build">v0.7</span>
         </div>
       </aside>
       <div className="main-shell">
@@ -420,7 +421,16 @@ function App({
               }}
             />
           )}
-          {page === "drift" && <DriftPanel canOperate={canOperate} />}
+          {page === "drift" && (
+            <DriftPanel
+              canOperate={canOperate}
+              inspect={(id) => {
+                setSelected(id);
+                setPage("traces");
+                setTab("trace");
+              }}
+            />
+          )}
           {page === "guardian" && (
             <GuardianPanel
               canOperate={canOperate}

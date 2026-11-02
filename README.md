@@ -26,6 +26,7 @@ AgentScope connects those behaviors to their execution traces and evaluates the 
 - **Real integrations:** a role-based LangGraph workload, a real MCP stdio worker with cross-process W3C trace propagation, and local Ollama inference with model-reported token counts.
 - **Failure diagnosis:** failed steps, stale-evidence metadata, repeated calls, failed explicit assertions, and missing parent spans.
 - **Reproducible experiments:** baseline versus controlled workflow for healthy execution, stale evidence, timeouts, and excessive retries.
+- **Collected-trace monitoring:** explicit UTC windows, source execution links, duration/token/tool-error/retry distributions, and missing-data reporting. [Trace drift guide](docs/trace-drift.md).
 - **Performance and drift:** numeric reference/current windows, KS effect sizes, permutation tests, multiple-test correction, and distribution charts. Seeded scenarios and a custom-window API.
 - **Guardian:** deterministic tool policy, explicit demo approval, persisted decision ledger, and transactional idempotency for synthetic tools.
 - **Review panel:** three bounded analyzers, span-linked evidence, visible disagreement, and abstention on missing evidence.

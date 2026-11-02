@@ -78,3 +78,7 @@ No phase duration is promised before learning the interview deadline, deployment
 ## Keep the interview tracks distinct
 
 The AgentScope showcase explains what was actually built, why, trade-offs, measured tests, and remaining production work. The Servicing Agent case demonstrates discovery, scope, KPIs, solution design and stakeholder judgment. AgentScope can inform the case's monitoring strategy without being presented as the whole servicing solution.
+
+### v0.7 — implemented: trace-derived monitoring
+
+On-demand comparisons of collected service/time cohorts, operational distributions, source evidence links and missingness. See [trace drift](trace-drift.md). Next: human annotation and reviewed trace-to-dataset evaluation, followed by evidence-driven rollout integration. Scheduled alerts, finer version cohorts and temporal calibration remain future work.
