@@ -33,6 +33,7 @@ AgentScope connects those behaviors to their execution traces and evaluates the 
 - **Adaptation workflow:** version registry, server-computed gates, workload/config digest, explicit local approval, 20% fixture canary routing, promotion, and rollback on candidate failure.
 - **Identity and access:** credential-bound tenant databases, four roles, revocable browser sessions, separate reviewer approvals, and tenant-scoped mutation audit records.
 - **Durable export:** optional bounded SQLite outbox, restart recovery, retry/backoff, quarantine, and delivery counters. [Run the outage/recovery example](docs/durable-delivery.md).
+- **Outbox maintenance:** preview-first quarantine recovery and expiry, stable batch IDs, stale-plan rejection, and transactional OS-actor audit. [Maintenance guide](docs/outbox-maintenance.md).
 - **Local storage:** SQLite WAL. No hosted observability account or paid model API is required for the fixture demo.
 
 The diagnosis rules do **not** constitute a general hallucination detector. The experiment uses four authored scenarios with deterministic responses. The Ollama path performs actual model inference and is labeled separately.
@@ -161,7 +162,7 @@ Read the [design decisions](docs/architecture.md), [privacy boundaries](docs/pri
 
 ## Product scope and next phase
 
-The first three milestones and phase 4a identity controls plus the phase 4b durable exporter are implemented locally. [The platform roadmap](docs/platform-roadmap.md) separates working features from the remaining enterprise work: enterprise SSO, retention and audited recovery, held-out evaluation, and a tested hybrid deployment.
+The first three milestones and phase 4a identity controls plus the phase 4b durable exporter are implemented locally. [The platform roadmap](docs/platform-roadmap.md) separates working features from the remaining enterprise work: enterprise SSO, collector retention and audit archival, held-out evaluation, and a tested hybrid deployment.
 
 ## Deliberate limits and next work
 

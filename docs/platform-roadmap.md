@@ -67,7 +67,7 @@ Credential-bound tenant databases, operator/reviewer/viewer/collector roles, rev
 
 ### Phase 4b — partially implemented: operational durability
 
-v0.5 implements an optional durable sender outbox, restart recovery, bounded admission, retry/backoff, quarantine and delivery counters. See [durable delivery](durable-delivery.md). Retention and deletion, audited quarantine recovery, distributed collector queues, and tamper-evident audit records remain. Define and test authorization boundaries before connecting real tools. Replace local locks with durable workflow transitions for distributed operation.
+v0.5 implements an optional durable sender outbox, restart recovery, bounded admission, retry/backoff, quarantine and delivery counters. See [durable delivery](durable-delivery.md). v0.6 adds offline quarantine recovery and expiry with exact-plan validation and transactional audit. Collector retention, audit archival, distributed collector queues, and tamper-evident audit records remain. Define and test authorization boundaries before connecting real tools. Replace local locks with durable workflow transitions for distributed operation.
 
 ### Phase 5 — next: real integrations and calibrated intelligence
 

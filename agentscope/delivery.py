@@ -8,6 +8,7 @@ import random
 import sqlite3
 import threading
 import time
+import uuid
 from pathlib import Path
 from email.utils import parsedate_to_datetime
 
@@ -82,6 +83,29 @@ class DurableDelivery:
                     raise ValueError(
                         "Outbox belongs to a different endpoint or credential"
                     )
+            columns = {r[1] for r in self.db.execute("PRAGMA table_info(batches)")}
+            with self.db:
+                self.db.execute("BEGIN IMMEDIATE")
+                if "batch_uid" not in columns:
+                    self.db.execute("ALTER TABLE batches ADD COLUMN batch_uid TEXT")
+                if "quarantined_at" not in columns:
+                    self.db.execute(
+                        "ALTER TABLE batches ADD COLUMN quarantined_at REAL"
+                    )
+                # Legacy quarantine age is unknown: begin retention at migration.
+                self.db.execute(
+                    "UPDATE batches SET quarantined_at=? WHERE state='quarantined' AND quarantined_at IS NULL",
+                    (time.time(),),
+                )
+                self.db.execute(
+                    "UPDATE batches SET batch_uid=lower(hex(randomblob(16))) WHERE batch_uid IS NULL"
+                )
+                self.db.execute(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS batches_uid ON batches(batch_uid)"
+                )
+                self.db.execute(
+                    "CREATE TABLE IF NOT EXISTS maintenance_audit (id TEXT PRIMARY KEY, created REAL NOT NULL, payload TEXT NOT NULL)"
+                )
             if start_worker:
                 self.thread = threading.Thread(
                     target=self._work, name="agentscope-delivery", daemon=True
@@ -112,8 +136,8 @@ class DurableDelivery:
                     self._count("rejected")
                 else:
                     self.db.execute(
-                        "INSERT INTO batches(payload,created) VALUES (?,?)",
-                        (payload, time.time()),
+                        "INSERT INTO batches(payload,created,batch_uid) VALUES (?,?,?)",
+                        (payload, time.time(), uuid.uuid4().hex),
                     )
                     self._count("accepted")
             if full:
@@ -204,8 +228,8 @@ class DurableDelivery:
                     self._count("delivered")
                 elif result == "quarantined":
                     self.db.execute(
-                        "UPDATE batches SET state='quarantined', reason=?, attempts=attempts+1 WHERE id=?",
-                        (reason, row["id"]),
+                        "UPDATE batches SET state='quarantined', reason=?, attempts=attempts+1, quarantined_at=? WHERE id=?",
+                        (reason, time.time(), row["id"]),
                     )
                     self._count("quarantined")
                 else:

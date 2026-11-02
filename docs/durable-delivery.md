@@ -35,7 +35,7 @@ To instrument another workflow, pass `outbox_path="data/my-agent-outbox.db"` to 
 
 One exporter owns each outbox through an OS file lock (macOS/Linux). Concurrent ownership is rejected. After process death, the OS releases the lock and a new exporter can resume. SQLite uses synchronous=FULL; persistence still depends on the underlying disk and filesystem honoring writes.
 
-The queue binds to a digest of endpoint and credential. Opening it with a different destination or key fails, preventing accidental cross-tenant replay. Raw credentials are never persisted. Credential rotation requires a new outbox; old quarantined batches currently require an explicit offline recovery procedure. There is no automatic rebinding, requeue, purge, or retention operation in this release.
+The queue binds to a digest of endpoint and credential. Opening it with a different destination or key fails, preventing accidental cross-tenant replay. Raw credentials are never persisted. Credential rotation requires a new outbox; old quarantined batches currently require an explicit offline recovery procedure. v0.6 adds [offline preview-first recovery and quarantine retention](outbox-maintenance.md), with transactional audit. Credential rebinding remains unsupported.
 
 Files use mode 0600. Redaction precedes persistence, but permitted metadata is still sensitive and this is not disk encryption. Durable mode is opt-in; existing direct-store and best-effort HTTP callers retain their behavior. The short-lived MCP demo credential does not use a durable outbox.
 
@@ -43,6 +43,6 @@ Files use mode 0600. Redaction precedes persistence, but permitted metadata is s
 
 Tests exercise abrupt process exit, restart, lost acknowledgements and deduplication, real HTTP outage recovery, retry deadlines, capacity rejection, quarantine, source-side redaction, endpoint/credential binding, and single-owner enforcement.
 
-This is a single-node sender outbox, not a distributed broker or a central queue-management UI. Collector storage remains synchronous SQLite. Retention/deletion, audited quarantine recovery, distributed quotas, independent resource isolation, load benchmarks, disk-fault injection, and a real hybrid deployment remain future work.
+This is a single-node sender outbox, not a distributed broker or a central queue-management UI. Collector storage remains synchronous SQLite. Collector retention, audit archival, distributed quotas, independent resource isolation, load benchmarks, disk-fault injection, and a real hybrid deployment remain future work.
 
 Retry classification follows the [OTLP HTTP specification](https://opentelemetry.io/docs/specs/otlp/#otlphttp-response).

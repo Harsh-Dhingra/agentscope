@@ -1,3 +1,10 @@
+# v0.6.0 — Audited outbox maintenance
+
+- Offline metadata inspection, exact-plan quarantine recovery and quarantine-age retention.
+- Stable batch UIDs, conservative v0.5 migration, stale-plan rejection, and blocked replay of ambiguous/partial responses.
+- State changes and OS-actor audit commit atomically; audit failures roll back the operation.
+- Pending payloads are excluded from retention. No automatic deletion, credential rebinding, collector retention, or enterprise identity claims.
+
 # v0.5.0 — Durable exporter and recovery
 
 - Optional bounded SQLite sender outbox with redaction before disk, restart recovery, credential/destination binding and single-owner locking.
