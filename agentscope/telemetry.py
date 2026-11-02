@@ -235,4 +235,4 @@ def create_tracer(
         queue_max_bytes,
     )
     provider.add_span_processor(SimpleSpanProcessor(exporter))
-    return provider.get_tracer("agentscope", "0.7.0"), provider, exporter
+    return provider.get_tracer("agentscope", "0.7.1"), provider, exporter

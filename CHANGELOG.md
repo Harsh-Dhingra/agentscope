@@ -1,3 +1,10 @@
+# v0.7.1 — Investigation workspace redesign
+
+- Compact navigation, consistent typography and surfaces, summary metrics, and collapsible demo playground.
+- Trace table with search, combined status/service/time filters, sorting, pagination and keyboard selection.
+- Persistent desktop inspector, explicit loading state, trace-ID copy and pause/resume live controls.
+- Responsive stacked inspector and horizontal table scrolling on mobile. This UI release does not change production security or deployment guarantees.
+
 # v0.7.0 — Drift from collected traces
 
 - Tenant-scoped service/time cohorts with trace-backed observations and evidence links.

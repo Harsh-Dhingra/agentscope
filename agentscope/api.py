@@ -94,7 +94,7 @@ def create_app(db_path=None, auth_mode=None, identity_path=None):
         tenants.close()
         identities.close()
 
-    app = FastAPI(title="AgentScope", version="0.7.0", lifespan=lifespan)
+    app = FastAPI(title="AgentScope", version="0.7.1", lifespan=lifespan)
     app.state.auth_mode = mode
     app.state.identities = identities
     app.state.tenants = tenants
@@ -119,7 +119,7 @@ def create_app(db_path=None, auth_mode=None, identity_path=None):
     def health():
         return {
             "status": "ok",
-            "version": "0.7.0",
+            "version": "0.7.1",
             "storage": "sqlite",
             "scope": "local deployment; credential-bound tenants"
             if mode == "required"

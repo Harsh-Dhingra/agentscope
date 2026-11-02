@@ -16,8 +16,10 @@ import {
   ShieldCheck,
   CircleAlert,
   Check,
-  Search,
   Radio,
+  RefreshCw,
+  Pause,
+  Copy,
   LoaderCircle,
   Terminal,
   Clock3,
@@ -30,6 +32,8 @@ import { DriftPanel } from "./TraceDrift";
 import { AuthGate, AccessPanel, type Session } from "./Auth";
 import { request as api } from "./http";
 import "./style.css";
+import { TraceTable } from "./TraceTable";
+import "./workspace.css";
 
 type Summary = {
   trace_id: string;
@@ -165,9 +169,12 @@ function App({
     [traces, setTraces] = useState<Summary[]>([]),
     [selected, setSelected] = useState<string | null>(null),
     [detail, setDetail] = useState<Detail | null>(null),
+    [detailLoading, setDetailLoading] = useState(false),
+    [copied, setCopied] = useState(false),
     [spanId, setSpanId] = useState<string | null>(null),
     [experiments, setExperiments] = useState<Experiment[]>([]),
-    [filter, setFilter] = useState(""),
+    [paused, setPaused] = useState(false),
+    [refreshing, setRefreshing] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [connected, setConnected] = useState(false),
@@ -196,15 +203,19 @@ function App({
   }
   useEffect(() => {
     void refresh();
+    if (paused) return;
     const timer = setInterval(() => void refresh(), 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [paused]);
   useEffect(() => {
     let live = true;
     if (!selected) {
       setDetail(null);
       return;
     }
+    setDetail((old) => (old?.summary.trace_id === selected ? old : null));
+    setDetailLoading(true);
+    setCopied(false);
     api<Detail>("/traces/" + selected)
       .then((d) => {
         if (live) {
@@ -214,7 +225,12 @@ function App({
           );
         }
       })
-      .catch((e) => setError(String(e)));
+      .catch((e) => {
+        if (live) setError(String(e));
+      })
+      .finally(() => {
+        if (live) setDetailLoading(false);
+      });
     return () => {
       live = false;
     };
@@ -252,11 +268,6 @@ function App({
       setBusy(false);
     }
   }
-  const visible = traces.filter((t) =>
-    `${t.name} ${t.scenario} ${t.service} ${t.trace_id} ${t.runtime} ${t.variant}`
-      .toLowerCase()
-      .includes(filter.toLowerCase()),
-  );
   const currentSpan = detail?.spans.find((s) => s.span_id === spanId);
   const median = traces.length
     ? [...traces].sort((a, b) => a.duration_ms - b.duration_ms)[
@@ -324,7 +335,7 @@ function App({
         <div className="sidebar-bottom">
           <span className={connected ? "status-dot" : "status-dot off"} />
           {connected ? "Collector connected" : "Collector unavailable"}
-          <span className="build">v0.7</span>
+          <span className="build">v0.7.1</span>
         </div>
       </aside>
       <div className="main-shell">
@@ -367,7 +378,7 @@ function App({
             </button>
           ))}
         </nav>
-        <main>
+        <main className={page === "traces" ? "traces-page" : "workspace-page"}>
           <div className="access-context">
             {session.mode === "development"
               ? "Explicit development mode: authentication is disabled."
@@ -375,15 +386,17 @@ function App({
           </div>
           <div className="page-heading">
             <div>
-              <div className="eyebrow">AGENT RELIABILITY LAB</div>
-              <h1>{pages[page].title}</h1>
+              <div className="eyebrow">WORKSPACE / {session.tenant}</div>
+              <h1>{pages[page].label}</h1>
               <p>{pages[page].description}</p>
             </div>
             <div className="live-label">
               <Radio size={14} />{" "}
               {connected
                 ? page === "traces"
-                  ? "Refreshing every 5s"
+                  ? paused
+                    ? "Auto-refresh paused"
+                    : "Live · every 5s"
                   : "Collector online"
                 : "Waiting for collector"}
             </div>
@@ -395,6 +408,38 @@ function App({
               <button aria-label="Dismiss error" onClick={() => setError("")}>
                 <X size={15} />
               </button>
+            </div>
+          )}
+          {page === "traces" && (
+            <div className="workspace-actions">
+              <span>
+                <ShieldCheck size={14} /> Metadata-only collection
+              </span>
+              <div>
+                <button
+                  className="secondary"
+                  aria-pressed={paused}
+                  onClick={() => setPaused(!paused)}
+                >
+                  {paused ? <Play size={14} /> : <Pause size={14} />}{" "}
+                  {paused ? "Resume live" : "Pause live"}
+                </button>
+                <button
+                  className="secondary"
+                  disabled={refreshing}
+                  onClick={async () => {
+                    setRefreshing(true);
+                    try {
+                      await refresh();
+                    } finally {
+                      setRefreshing(false);
+                    }
+                  }}
+                >
+                  <RefreshCw className={refreshing ? "spin" : ""} size={14} />{" "}
+                  Refresh
+                </button>
+              </div>
             </div>
           )}
           {page === "access" && <AccessPanel session={session} />}
@@ -469,181 +514,125 @@ function App({
                   sub="Explicit workload assertions failed"
                 />
               </section>
-              <section className="run-panel">
-                <div className="run-title">
-                  <span className="small-icon">
-                    <Play size={15} />
-                  </span>
-                  <div>
-                    <strong>Run a demo workload</strong>
-                    <small>
-                      LangGraph incident analyst · synthetic runbook
-                    </small>
-                  </div>
-                </div>
-                <div className="run-controls">
-                  <label>
-                    Scenario
-                    <select
-                      value={scenario}
-                      onChange={(e) => setScenario(e.target.value)}
-                    >
-                      {Object.entries(labels).map(([k, v]) => (
-                        <option key={k} value={k}>
-                          {v}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    Implementation
-                    <select
-                      value={variant}
-                      onChange={(e) => setVariant(e.target.value)}
-                    >
-                      <option value="baseline">Baseline</option>
-                      <option value="guarded">With controls</option>
-                    </select>
-                  </label>
-                  <label>
-                    Inference
-                    <select
-                      value={runtime}
-                      onChange={(e) => setRuntime(e.target.value)}
-                    >
-                      <option value="scripted">Scripted fixture</option>
-                      <option value="ollama">Local Ollama</option>
-                    </select>
-                  </label>
-                  <label>
-                    Tool transport
-                    <select
-                      value={transport}
-                      onChange={(e) => setTransport(e.target.value)}
-                    >
-                      <option value="inprocess">In process</option>
-                      <option value="mcp">MCP · subprocess</option>
-                    </select>
-                  </label>
-                  <button
-                    className="primary"
-                    onClick={() => void run()}
-                    disabled={busy || !canOperate}
-                  >
-                    {busy ? (
-                      <LoaderCircle className="spin" size={15} />
-                    ) : (
+              <details className="demo-drawer">
+                <summary>
+                  <Play size={13} /> Demo playground{" "}
+                  <span>Generate a synthetic execution</span>
+                  <ChevronRight size={14} />
+                </summary>
+                <section className="run-panel">
+                  <div className="run-title">
+                    <span className="small-icon">
                       <Play size={15} />
-                    )}{" "}
-                    {busy ? "Running…" : "Run scenario"}
-                  </button>
-                </div>
-              </section>
-              <div className="explorer-grid">
-                <section className="trace-list">
-                  <div className="panel-head">
-                    <h2>
-                      Recent traces <span>{visible.length}</span>
-                    </h2>
-                    <span className="micro">NEWEST FIRST</span>
+                    </span>
+                    <div>
+                      <strong>Run a demo workload</strong>
+                      <small>
+                        LangGraph incident analyst · synthetic runbook
+                      </small>
+                    </div>
                   </div>
-                  <div className="search">
-                    <Search size={15} />
-                    <input
-                      aria-label="Filter traces"
-                      placeholder="Search scenario, service, or trace ID"
-                      value={filter}
-                      onChange={(e) => setFilter(e.target.value)}
-                    />
-                  </div>
-                  <div className="trace-items">
-                    {visible.length === 0 ? (
-                      <div className="empty">
-                        <Workflow size={26} />
-                        <strong>
-                          {filter
-                            ? "No matching traces"
-                            : "Your first trace starts here"}
-                        </strong>
-                        <p>
-                          {filter
-                            ? "Try another scenario or trace ID."
-                            : "Run a demo workload or connect your own agent."}
-                        </p>
-                      </div>
-                    ) : (
-                      visible.map((t) => (
-                        <button
-                          className={
-                            "trace-item " +
-                            (t.trace_id === selected ? "selected" : "")
-                          }
-                          key={t.trace_id}
-                          onClick={() => {
-                            setSelected(t.trace_id);
-                            setTab("trace");
-                          }}
-                        >
-                          <div className="trace-item-top">
-                            <span
-                              className={
-                                "trace-status " +
-                                (t.error_count
-                                  ? "bad"
-                                  : t.finding_count
-                                    ? "warn"
-                                    : "good")
-                              }
-                            >
-                              {t.error_count ? (
-                                <CircleAlert size={15} />
-                              ) : t.finding_count ? (
-                                <CircleAlert size={15} />
-                              ) : (
-                                <Check size={15} />
-                              )}
-                            </span>
-                            <strong>{pretty(t.scenario)}</strong>
-                            <span className="duration">
-                              {t.duration_ms.toFixed(0)} ms
-                            </span>
-                          </div>
-                          <div className="trace-item-mid">
-                            <span>
-                              {t.variant === "guarded"
-                                ? "With controls"
-                                : pretty(t.variant)}
-                            </span>
-                            <span>·</span>
-                            <span>
-                              {t.runtime === "scripted"
-                                ? "Fixture"
-                                : t.runtime === "ollama"
-                                  ? "Ollama"
-                                  : t.service}
-                            </span>
-                            <span>·</span>
-                            <span>{t.span_count} spans</span>
-                          </div>
-                          <div className="trace-item-bottom">
-                            <code>{t.trace_id.slice(0, 12)}</code>
-                            <span className={"outcome " + t.outcome}>
-                              {pretty(t.outcome)}
-                            </span>
-                          </div>
-                        </button>
-                      ))
-                    )}
+                  <div className="run-controls">
+                    <label>
+                      Scenario
+                      <select
+                        value={scenario}
+                        onChange={(e) => setScenario(e.target.value)}
+                      >
+                        {Object.entries(labels).map(([k, v]) => (
+                          <option key={k} value={k}>
+                            {v}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Implementation
+                      <select
+                        value={variant}
+                        onChange={(e) => setVariant(e.target.value)}
+                      >
+                        <option value="baseline">Baseline</option>
+                        <option value="guarded">With controls</option>
+                      </select>
+                    </label>
+                    <label>
+                      Inference
+                      <select
+                        value={runtime}
+                        onChange={(e) => setRuntime(e.target.value)}
+                      >
+                        <option value="scripted">Scripted fixture</option>
+                        <option value="ollama">Local Ollama</option>
+                      </select>
+                    </label>
+                    <label>
+                      Tool transport
+                      <select
+                        value={transport}
+                        onChange={(e) => setTransport(e.target.value)}
+                      >
+                        <option value="inprocess">In process</option>
+                        <option value="mcp">MCP · subprocess</option>
+                      </select>
+                    </label>
+                    <button
+                      className="primary"
+                      onClick={() => void run()}
+                      disabled={busy || !canOperate}
+                    >
+                      {busy ? (
+                        <LoaderCircle className="spin" size={15} />
+                      ) : (
+                        <Play size={15} />
+                      )}{" "}
+                      {busy ? "Running…" : "Run scenario"}
+                    </button>
                   </div>
                 </section>
-                <section className="inspector">
+              </details>
+              <div className="explorer-grid">
+                <TraceTable
+                  traces={traces}
+                  selected={selected}
+                  select={(id) => {
+                    setSelected(id);
+                    setTab("trace");
+                  }}
+                />
+                <section
+                  className="inspector"
+                  aria-label="Execution inspector"
+                  aria-busy={detailLoading}
+                >
                   {detail && active ? (
                     <>
                       <div className="inspector-heading">
                         <div>
                           <div className="eyebrow">TRACE DETAILS</div>
-                          <h2>{pretty(active.scenario)}</h2>
-                          <code>{active.trace_id}</code>
+                          <h2>{active.name}</h2>
+                          <div className="inspector-id">
+                            <code>{active.trace_id}</code>
+                            <button
+                              className="icon-control"
+                              aria-label="Copy trace ID"
+                              onClick={() =>
+                                void navigator.clipboard
+                                  .writeText(active.trace_id)
+                                  .then(() => setCopied(true))
+                                  .catch(() =>
+                                    setError("Could not copy trace ID"),
+                                  )
+                              }
+                            >
+                              {copied ? (
+                                <Check size={12} />
+                              ) : (
+                                <Copy size={12} />
+                              )}
+                            </button>
+                            {copied && <span role="status">Copied</span>}
+                          </div>
                         </div>
                         <span
                           className={
@@ -878,9 +867,19 @@ function App({
                   ) : (
                     <div className="empty inspector-empty">
                       <Workflow size={35} />
-                      <strong>Select an execution</strong>
+                      <strong>
+                        {detailLoading
+                          ? "Loading execution…"
+                          : selected
+                            ? "Execution unavailable"
+                            : "Select an execution"}
+                      </strong>
                       <p>
-                        Explore its spans, evidence, and evaluation results.
+                        {detailLoading
+                          ? "Retrieving spans and evaluation evidence."
+                          : selected
+                            ? "Refresh to retry, or select another trace."
+                            : "Explore its spans, evidence, and evaluation results."}
                       </p>
                     </div>
                   )}

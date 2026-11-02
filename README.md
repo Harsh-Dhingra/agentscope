@@ -10,7 +10,7 @@ Built with **Python · FastAPI · React · TypeScript · OpenTelemetry · LangGr
 
 This is an independent engineering portfolio project. It is not affiliated with other projects named AgentScope. The current release is a local development system with credential-bound tenants and roles; production and multicloud requirements are documented explicitly.
 
-![AgentScope tenant identity and access audit](docs/screenshots/access.jpg)
+![AgentScope investigation workspace with trace table and execution inspector](docs/screenshots/workspace.jpg)
 
 ## Why build this?
 
@@ -21,7 +21,7 @@ AgentScope connects those behaviors to their execution traces and evaluates the 
 ## What works today
 
 - **OTLP/HTTP ingestion:** protobuf and JSON traces, parent IDs, links, execution times, error status, resource metadata, and duplicate-delivery upserts.
-- **Trace explorer:** searchable runs, span waterfall, service attribution, metadata drill-down, explicit evaluation failures, and five-second refresh.
+- **Trace explorer:** searchable and paginated table, service/status/time filters, latency/token sorting, keyboard selection, persistent execution inspector, span waterfall, and pause/resume live refresh. Filters apply to the latest 200 loaded traces.
 - **Source-side privacy controls:** bundled exporter drops unapproved attributes before network transport and suppresses raw exception messages. The collector filters incoming metadata again.
 - **Real integrations:** a role-based LangGraph workload, a real MCP stdio worker with cross-process W3C trace propagation, and local Ollama inference with model-reported token counts.
 - **Failure diagnosis:** failed steps, stale-evidence metadata, repeated calls, failed explicit assertions, and missing parent spans.
